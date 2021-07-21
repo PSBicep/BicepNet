@@ -3,6 +3,9 @@ param(
     [string]
     $Configuration = 'Debug',
 
+    [string]
+    $Version,
+
     [Switch]
     $Full
 )
@@ -24,7 +27,7 @@ New-Item -Path $corePath -ItemType Directory
 $Path = "$ProjectRoot/BicepNet.Core"
 Push-Location -Path $Path
 Write-Host $Path -ForegroundColor 'Magenta'
-if($Full) {
+if ($Full) {
     dotnet build-server shutdown
     dotnet clean
 }
@@ -34,7 +37,7 @@ Pop-Location
 $Path = "$ProjectRoot/BicepNet.PS"
 Push-Location -Path $Path
 Write-Host $Path -ForegroundColor 'Magenta'
-if($Full) {
+if ($Full) {
     dotnet build-server shutdown
     dotnet clean
 }
@@ -42,7 +45,6 @@ dotnet publish -c $Configuration -f $netcoreversion
 Pop-Location
 
 $commonFiles = [System.Collections.Generic.HashSet[string]]::new()
-Copy-Item -Path "$ProjectRoot/BicepNet.PS/BicepNet.PS.psd1" -Destination $outPath
 
 Get-ChildItem -Path "$ProjectRoot/BicepNet.Core/bin/$Configuration/netstandard2.1/publish" |
 Where-Object { $_.Extension -in '.dll', '.pdb' } |
@@ -55,6 +57,21 @@ Get-ChildItem -Path "$ProjectRoot/BicepNet.PS/bin/$Configuration/$netcoreversion
 Where-Object { $_.Extension -in '.dll', '.pdb' -and -not $commonFiles.Contains($_.Name) } |
 ForEach-Object { 
     Copy-Item -LiteralPath $_.FullName -Destination $corePath
+}
+
+Copy-Item -Path "$ProjectRoot/BicepNet.PS/BicepNet.PS.psd1" -Destination $outPath
+if (-not $PSBoundParameters.ContainsKey('Version')) {
+    try {
+        $Version = gitversion /showvariable LegacySemVerPadded
+    }
+    catch {
+        $Version = [string]::Empty
+    }
+}
+
+if($Version) {
+    $SemVer, $PreReleaseTag = $Version.Split('-')
+    Update-ModuleManifest -Path "$outPath/BicepNet.PS.psd1" -ModuleVersion $SemVer -Prerelease $PreReleaseTag
 }
 
 Compress-Archive -Path $outPath -DestinationPath "$ProjectRoot/out/BicepNet.PS.zip" -Force
