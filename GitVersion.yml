@@ -1,0 +1,26 @@
+mode: ContinuousDeployment
+branches:
+  main:
+    regex: ^master$|^main$
+    mode: ContinuousDeployment
+    tag: 'Preview'
+    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    tracks-release-branches: false
+    is-release-branch: false
+  otherThanMain:
+    regex: ^(?!master$|main$).*$
+    mode: ContinuousDeployment
+    source-branches: [main]
+    tag: 'alpha'
+    increment: Inherit
+    prevent-increment-of-merged-branch-version: false
+    track-merge-target: false
+    tracks-release-branches: false
+    is-release-branch: false
+    
+ignore:
+  sha: []
+merge-message-formats: {}
+tag-prefix: '[vV]'

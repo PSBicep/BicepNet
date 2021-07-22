@@ -74,4 +74,4 @@ if($Version) {
     Update-ModuleManifest -Path "$outPath/BicepNet.PS.psd1" -ModuleVersion $SemVer -Prerelease $PreReleaseTag
 }
 
-Compress-Archive -Path $outPath -DestinationPath "$ProjectRoot/out/BicepNet.PS.zip" -Force
+Compress-Archive -Path $outPath -DestinationPath "$ProjectRoot/BicepNet.PS.zip" -Force
