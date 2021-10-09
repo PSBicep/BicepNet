@@ -59,7 +59,7 @@ ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $corePath
 }
 
-Copy-Item -Path "$ProjectRoot/BicepNet.PS/BicepNet.PS.psd1" -Destination $outPath
+Copy-Item -Path "$ProjectRoot/BicepNet.PS/Manifest/BicepNet.PS.psd1" -Destination $outPath
 if (-not $PSBoundParameters.ContainsKey('Version')) {
     try {
         $Version = gitversion /showvariable LegacySemVerPadded

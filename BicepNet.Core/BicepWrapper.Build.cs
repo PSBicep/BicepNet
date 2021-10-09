@@ -1,5 +1,6 @@
 using Bicep.Core.Emit;
 using Bicep.Core.FileSystem;
+using Bicep.Core.Registry;
 using Bicep.Core.Semantics;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
@@ -20,7 +21,9 @@ namespace BicepNet.Core
             };
 
             var inputUri = PathHelper.FilePathToFileUrl(bicepPath);
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(new FileResolver(), new Workspace(), inputUri);
+            var fileResolver = new FileResolver();
+            var dispatcher = new ModuleDispatcher(new DefaultModuleRegistryProvider(fileResolver));
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, dispatcher, new Workspace(), inputUri);
             var compilation = new Compilation(AzResourceTypeProvider.CreateWithAzTypes(), sourceFileGrouping);
             var template = new List<string>();
 
