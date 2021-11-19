@@ -1,12 +1,18 @@
+using Bicep.Core.Configuration;
 using Bicep.Core.Emit;
+using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
+using Bicep.Core.Json;
 using Bicep.Core.Registry;
+using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics;
+using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Abstractions;
 
 namespace BicepNet.Core
 {
@@ -20,17 +26,30 @@ namespace BicepNet.Core
                 Formatting = Formatting.Indented
             };
 
+            var fileSystem = new FileSystem();
+
+            var configuration = RootConfiguration.Bind(
+                JsonElementFactory.CreateElement(
+                    fileSystem.FileStream.Create(BuiltInConfigurationResourcePath, FileMode.Open, FileAccess.Read))
+                );
+
             var inputUri = PathHelper.FilePathToFileUrl(bicepPath);
             var fileResolver = new FileResolver();
-            var dispatcher = new ModuleDispatcher(new DefaultModuleRegistryProvider(fileResolver));
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, dispatcher, new Workspace(), inputUri);
-            var compilation = new Compilation(AzResourceTypeProvider.CreateWithAzTypes(), sourceFileGrouping);
+            var tokenCredentialFactory = new TokenCredentialFactory();
+            var featureProvider = new FeatureProvider();
+            var moduleRegistryProvider = new DefaultModuleRegistryProvider(fileResolver,
+                new ContainerRegistryClientFactory(tokenCredentialFactory),
+                new TemplateSpecRepositoryFactory(tokenCredentialFactory),
+                featureProvider);
+            var dispatcher = new ModuleDispatcher(moduleRegistryProvider);
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, dispatcher, new Workspace(), inputUri, configuration);
+            var compilation = new Compilation(new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider), sourceFileGrouping, configuration);
             var template = new List<string>();
 
             var (success, dignosticResult) = LogDiagnostics(compilation);
             if (success)
             {
-                var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), BicepVersion);
+                var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
                 emitter.Emit(writer);
                 template.Add(sw.ToString());
             }
@@ -39,7 +58,6 @@ namespace BicepNet.Core
                 template,
                 dignosticResult
             );
-
         }
 
         private static (bool success, ICollection<DiagnosticEntry> dignosticResult) LogDiagnostics(Compilation compilation)

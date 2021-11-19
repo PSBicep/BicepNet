@@ -1,0 +1,59 @@
+{
+  "cloud": {
+    "currentProfile": "AzureCloud",
+    "profiles": {
+      "AzureCloud": {
+        "resourceManagerEndpoint": "https://management.azure.com",
+        "activeDirectoryAuthority": "https://login.microsoftonline.com"
+      },
+      "AzureChinaCloud": {
+        "resourceManagerEndpoint": "https://management.chinacloudapi.cn",
+        "activeDirectoryAuthority": "https://login.chinacloudapi.cn"
+      },
+      "AzureUSGovernment": {
+        "resourceManagerEndpoint": "https://management.usgovcloudapi.net",
+        "activeDirectoryAuthority": "https://login.microsoftonline.us"
+      }
+    },
+    "credentialPrecedence": [
+      "AzureCLI",
+      "AzurePowerShell"
+    ]
+  },
+  "moduleAliases": {
+    "ts": {},
+    "br": {}
+  },
+  "analyzers": {
+    "core": {
+      "verbose": false,
+      "enabled": true,
+      "rules": {
+        "no-hardcoded-env-urls": {
+          "level": "warning",
+          "disallowedhosts": [
+            "gallery.azure.com",
+            "management.core.windows.net",
+            "management.azure.com",
+            "database.windows.net",
+            "core.windows.net",
+            "login.microsoftonline.com",
+            "graph.windows.net",
+            "trafficmanager.net",
+            "datalake.azure.net",
+            "azuredatalakestore.net",
+            "azuredatalakeanalytics.net",
+            "vault.azure.net",
+            "api.loganalytics.io",
+            "asazure.windows.net",
+            "region.asazure.windows.net",
+            "batch.core.windows.net"
+          ],
+          "excludedhosts": [
+            "schema.management.azure.com"
+          ]
+        }
+      }
+    }
+  }
+}
