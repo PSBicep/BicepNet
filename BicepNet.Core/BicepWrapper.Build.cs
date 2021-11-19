@@ -18,7 +18,7 @@ namespace BicepNet.Core
 {
     public partial class BicepWrapper
     {
-        public static BuildResult Build(string bicepPath)
+        public static BuildResult Build(string bicepPath, bool noRestore = false)
         {
             using var sw = new StringWriter();
             using var writer = new JsonTextWriter(sw)
@@ -42,7 +42,20 @@ namespace BicepNet.Core
                 new TemplateSpecRepositoryFactory(tokenCredentialFactory),
                 featureProvider);
             var dispatcher = new ModuleDispatcher(moduleRegistryProvider);
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, dispatcher, new Workspace(), inputUri, configuration);
+            var workspace = new Workspace();
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, dispatcher, workspace, inputUri, configuration);
+
+            var moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
+
+            // If user did not specify NoRestore, restore modules and rebuild
+            if (!noRestore)
+            {
+                if (moduleDispatcher.RestoreModules(configuration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, configuration)).GetAwaiter().GetResult())
+                {
+                    sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, configuration);
+                }
+            }
+
             var compilation = new Compilation(new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider), sourceFileGrouping, configuration);
             var template = new List<string>();
 
