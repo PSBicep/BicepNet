@@ -2,21 +2,14 @@ using Bicep.Core.Configuration;
 using Bicep.Core.Diagnostics;
 using Bicep.Core.Emit;
 using Bicep.Core.Exceptions;
-using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
-using Bicep.Core.Json;
 using Bicep.Core.Parsing;
 using Bicep.Core.Registry;
-using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics;
-using Bicep.Core.Semantics.Namespaces;
-using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Abstractions;
 
 namespace BicepNet.Core
 {
@@ -24,17 +17,6 @@ namespace BicepNet.Core
     {
         public static void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true)
         {
-            var fileResolver = new FileResolver();
-            var tokenCredentialFactory = new TokenCredentialFactory();
-            var featureProvider = new FeatureProvider();
-            var moduleRegistryProvider = new DefaultModuleRegistryProvider(fileResolver,
-                new ContainerRegistryClientFactory(tokenCredentialFactory),
-                new TemplateSpecRepositoryFactory(tokenCredentialFactory),
-                featureProvider);
-
-            var fileSystem = new FileSystem();
-
-            var moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
             var moduleReference = moduleDispatcher.TryGetModuleReference(targetModuleReference,
                 new ConfigurationManager(fileSystem).GetBuiltInConfiguration(),
                 out var failureBuilder);
@@ -58,14 +40,8 @@ namespace BicepNet.Core
 
             var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
 
-            var configuration = RootConfiguration.Bind(
-                JsonElementFactory.CreateElement(
-                    fileSystem.FileStream.Create(BuiltInConfigurationResourcePath, FileMode.Open, FileAccess.Read))
-                );
-
-            var dispatcher = new ModuleDispatcher(moduleRegistryProvider);
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, dispatcher, new Workspace(), inputUri, configuration);
-            var compilation = new Compilation(new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider), sourceFileGrouping, configuration);
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, configuration);
+            var compilation = new Compilation(namespaceProvider, sourceFileGrouping, configuration);
             var template = new List<string>();
 
             var (success, dignosticResult) = LogDiagnostics(compilation);
