@@ -6,12 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="bicepconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\bicepconfig.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="..\..\bicep\src\Bicep.Core\Bicep.Core.csproj" />
-    <ProjectReference Include="..\..\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" />
-    <Content Include="bicepconfig.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="..\..\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" /> 
   </ItemGroup>
 
 </Project>

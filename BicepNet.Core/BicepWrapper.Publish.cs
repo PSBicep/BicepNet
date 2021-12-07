@@ -1,4 +1,3 @@
-using Bicep.Core.Configuration;
 using Bicep.Core.Diagnostics;
 using Bicep.Core.Emit;
 using Bicep.Core.Exceptions;
@@ -17,9 +16,9 @@ namespace BicepNet.Core
     {
         public static void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true)
         {
-            var moduleReference = moduleDispatcher.TryGetModuleReference(targetModuleReference,
-                new ConfigurationManager(fileSystem).GetBuiltInConfiguration(),
-                out var failureBuilder);
+            var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
+
+            var moduleReference = moduleDispatcher.TryGetModuleReference(targetModuleReference, configuration, out var failureBuilder);
 
             if (moduleReference is null)
             {
@@ -38,10 +37,11 @@ namespace BicepNet.Core
                 throw new BicepException($"The specified module target \"{targetModuleReference}\" is not supported.");
             }
 
-            var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
+            // Create separate configuration for the build, to account for custom rule changes
+            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
 
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, configuration);
-            var compilation = new Compilation(namespaceProvider, sourceFileGrouping, configuration);
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
+            var compilation = new Compilation(namespaceProvider, sourceFileGrouping, buildConfiguration);
             var template = new List<string>();
 
             var (success, dignosticResult) = LogDiagnostics(compilation);

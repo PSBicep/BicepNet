@@ -20,6 +20,10 @@ namespace BicepNet.Core
             };
 
             var inputUri = PathHelper.FilePathToFileUrl(bicepPath);
+
+            // Create separate configuration for the build, to account for custom rule changes
+            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
+
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, configuration);
 
             // If user did not specify NoRestore, restore modules and rebuild

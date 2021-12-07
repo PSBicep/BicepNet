@@ -1,22 +1,19 @@
 using Bicep.Core.Configuration;
 using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
-using Bicep.Core.Json;
 using Bicep.Core.Registry;
 using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
+using BicepNet.Core.Configuration;
 using System.Diagnostics;
-using System.IO;
 using System.IO.Abstractions;
-using System.Reflection;
 
 namespace BicepNet.Core
 {
     public partial class BicepWrapper
     {
-        public static string BuiltInConfigurationResourcePath { get; } = $"{Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\bicepconfig.json";
         public static string BicepVersion { get; } = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion;
 
         // Services shared between commands
@@ -28,6 +25,7 @@ namespace BicepNet.Core
         private static readonly IModuleRegistryProvider moduleRegistryProvider;
         private static readonly IReadOnlyWorkspace workspace;
         private static readonly INamespaceProvider namespaceProvider;
+        private static readonly IConfigurationManager configurationManager;
 
         static BicepWrapper()
         {
@@ -35,11 +33,9 @@ namespace BicepNet.Core
             fileSystem = new FileSystem();
             fileResolver = new FileResolver();
             featureProvider = new FeatureProvider();
-            
-            configuration = RootConfiguration.Bind(
-                JsonElementFactory.CreateElement(
-                    fileSystem.FileStream.Create(BuiltInConfigurationResourcePath, FileMode.Open, FileAccess.Read))
-                );
+            configurationManager = new BicepNetConfigurationManager(fileSystem);
+
+            configuration = configurationManager.GetBuiltInConfiguration();
 
             namespaceProvider = new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider);
             

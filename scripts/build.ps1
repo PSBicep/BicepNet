@@ -59,7 +59,6 @@ ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $corePath
 }
 
-Copy-Item -Path "$ProjectRoot/BicepNet.Core/bin/$Configuration/netstandard2.1/bicepconfig.json" -Destination $commonPath
 Copy-Item -Path "$ProjectRoot/BicepNet.PS/Manifest/BicepNet.PS.psd1" -Destination $outPath
 if (-not $PSBoundParameters.ContainsKey('Version')) {
     try {

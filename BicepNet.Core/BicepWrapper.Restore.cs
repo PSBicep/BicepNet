@@ -9,10 +9,14 @@ namespace BicepNet.Core
         public static void Restore(string inputFilePath)
         {
             var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, configuration);
+            
+            // Create separate configuration for the build, to account for custom rule changes
+            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
+
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
 
             // Restore valid references, don't log any errors
-            moduleDispatcher.RestoreModules(configuration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, configuration));
+            moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration));
         }
     }
 }

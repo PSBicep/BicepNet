@@ -1,4 +1,3 @@
-using Bicep.Core.Configuration;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
@@ -21,7 +20,7 @@ namespace BicepNet.Core
             Uri outputUri = PathHelper.FilePathToFileUrl(outputPath);
 
             var template = new Dictionary<string,string>();
-            var templateDecompiler = new TemplateDecompiler(new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider), fileResolver, moduleRegistryProvider, new ConfigurationManager(fileSystem));
+            var templateDecompiler = new TemplateDecompiler(new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider), fileResolver, moduleRegistryProvider, configurationManager);
             var decompilation = templateDecompiler.DecompileFileWithModules(inputUri, outputUri);
             
             foreach (var (fileUri, bicepOutput) in decompilation.filesToSave)
