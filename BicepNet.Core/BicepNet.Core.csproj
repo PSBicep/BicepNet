@@ -14,8 +14,8 @@
   </ItemGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\bicep\src\Bicep.Core\Bicep.Core.csproj" />
-    <ProjectReference Include="..\..\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" /> 
+    <ProjectReference Include="..\TMP\bicep\src\Bicep.Core\Bicep.Core.csproj" />
+    <ProjectReference Include="..\TMP\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" /> 
   </ItemGroup>
 
 </Project>
