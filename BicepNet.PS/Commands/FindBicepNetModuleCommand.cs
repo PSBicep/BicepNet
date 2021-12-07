@@ -3,8 +3,8 @@ using System.Management.Automation;
 
 namespace BicepNet.PS.Commands
 {
-    [Cmdlet(VerbsData.ConvertTo, "BicepNetFile")]
-    public class ConvertToBicepNetFile : BicepNetBaseCommand
+    [Cmdlet(VerbsCommon.Find, "BicepNetModule")]
+    public class FindBicepNetModuleCommand : BicepNetBaseCommand
     {
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNullOrEmpty]
@@ -12,7 +12,7 @@ namespace BicepNet.PS.Commands
 
         protected override void ProcessRecord()
         {
-            var result = BicepWrapper.Decompile(Path);
+            var result = BicepWrapper.FindModules(Path);
             WriteObject(result);
         }
     }

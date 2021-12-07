@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace BicepNet.Core
+namespace BicepNet.Core.Models
 {
     public class BuildResult
     {

@@ -1,17 +1,12 @@
 using BicepNet.Core;
 using System.Management.Automation;
 
-namespace BicepNet.PS
+namespace BicepNet.PS.Commands
 {
     [Cmdlet(VerbsCommon.Get, "BicepNetVersion")]
     [CmdletBinding]
-    public class GetBicepNetVersionCommand : PSCmdlet
+    public class GetBicepNetVersionCommand : BicepNetBaseCommand
     {
-
-        public GetBicepNetVersionCommand()
-        {
-        }
-
         protected override void EndProcessing()
         {
             var result = BicepWrapper.BicepVersion;
