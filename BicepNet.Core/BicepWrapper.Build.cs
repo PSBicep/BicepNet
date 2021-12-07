@@ -24,18 +24,18 @@ namespace BicepNet.Core
             // Create separate configuration for the build, to account for custom rule changes
             var buildConfiguration = configurationManager.GetConfiguration(inputUri);
 
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, configuration);
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
 
             // If user did not specify NoRestore, restore modules and rebuild
             if (!noRestore)
             {
-                if (moduleDispatcher.RestoreModules(configuration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, configuration)).GetAwaiter().GetResult())
+                if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration)).GetAwaiter().GetResult())
                 {
-                    sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, configuration);
+                    sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, buildConfiguration);
                 }
             }
 
-            var compilation = new Compilation(namespaceProvider, sourceFileGrouping, configuration);
+            var compilation = new Compilation(namespaceProvider, sourceFileGrouping, buildConfiguration);
             var template = new List<string>();
 
             var (success, dignosticResult) = LogDiagnostics(compilation);
