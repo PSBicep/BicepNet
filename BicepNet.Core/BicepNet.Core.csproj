@@ -6,8 +6,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="bicepconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration\bicepconfig.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <ProjectReference Include="..\TMP\bicep\src\Bicep.Core\Bicep.Core.csproj" />
-    <ProjectReference Include="..\TMP\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" />
+    <ProjectReference Include="..\TMP\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" /> 
   </ItemGroup>
 
 </Project>

@@ -3,25 +3,22 @@ using System.Management.Automation;
 
 namespace BicepNet.PS
 {
-    [Cmdlet(VerbsLifecycle.Build, "BicepNetFile")]
-    public class BuildBicepNetFileCommand : PSCmdlet
+    [Cmdlet(VerbsData.Publish, "BicepNetFile")]
+    public class PublishBicepNetFileCommand : PSCmdlet
     {
-
-        public BuildBicepNetFileCommand()
-        {
-        }
+        public PublishBicepNetFileCommand() {}
 
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
 
-        [Parameter()]
-        public SwitchParameter NoRestore { get; set; }
+        [Parameter(Mandatory = true)]
+        [ValidateNotNullOrEmpty]
+        public string Target { get; set; }
 
         protected override void ProcessRecord()
         {
-            var result = BicepWrapper.Build(Path, NoRestore.IsPresent);
-            WriteObject(result);
+            BicepWrapper.Publish(Path, Target, true);
         }
 
         protected override void EndProcessing()

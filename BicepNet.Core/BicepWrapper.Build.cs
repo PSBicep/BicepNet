@@ -2,7 +2,6 @@ using Bicep.Core.Emit;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Registry;
 using Bicep.Core.Semantics;
-using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -12,7 +11,7 @@ namespace BicepNet.Core
 {
     public partial class BicepWrapper
     {
-        public static BuildResult Build(string bicepPath)
+        public static BuildResult Build(string bicepPath, bool noRestore = false)
         {
             using var sw = new StringWriter();
             using var writer = new JsonTextWriter(sw)
@@ -21,16 +20,28 @@ namespace BicepNet.Core
             };
 
             var inputUri = PathHelper.FilePathToFileUrl(bicepPath);
-            var fileResolver = new FileResolver();
-            var dispatcher = new ModuleDispatcher(new DefaultModuleRegistryProvider(fileResolver));
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, dispatcher, new Workspace(), inputUri);
-            var compilation = new Compilation(AzResourceTypeProvider.CreateWithAzTypes(), sourceFileGrouping);
+
+            // Create separate configuration for the build, to account for custom rule changes
+            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
+
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
+
+            // If user did not specify NoRestore, restore modules and rebuild
+            if (!noRestore)
+            {
+                if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration)).GetAwaiter().GetResult())
+                {
+                    sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, buildConfiguration);
+                }
+            }
+
+            var compilation = new Compilation(namespaceProvider, sourceFileGrouping, buildConfiguration);
             var template = new List<string>();
 
             var (success, dignosticResult) = LogDiagnostics(compilation);
             if (success)
             {
-                var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), BicepVersion);
+                var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
                 emitter.Emit(writer);
                 template.Add(sw.ToString());
             }
@@ -39,7 +50,6 @@ namespace BicepNet.Core
                 template,
                 dignosticResult
             );
-
         }
 
         private static (bool success, ICollection<DiagnosticEntry> dignosticResult) LogDiagnostics(Compilation compilation)
