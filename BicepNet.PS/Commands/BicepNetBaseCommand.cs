@@ -18,11 +18,6 @@ namespace BicepNet.PS.Commands
             LogLevel.Error
         };
 
-        protected override void BeginProcessing()
-        {
-            base.BeginProcessing();
-        }
-
         public BicepNetBaseCommand()
         {
             name = MyInvocation.InvocationName;

@@ -10,14 +10,9 @@ namespace BicepNet.PS.Commands
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
 
-        protected override void BeginProcessing()
-        {
-            base.BeginProcessing();
-            BicepWrapper.Initialize(this);
-        }
-
         protected override void ProcessRecord()
         {
+            BicepWrapper.Initialize(this);
             BicepWrapper.Restore(Path);
         }
     }
