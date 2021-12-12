@@ -1,6 +1,7 @@
 using Bicep.Core.Diagnostics;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Registry;
+using Bicep.Core.Semantics;
 using Bicep.Core.Syntax;
 using Bicep.Core.Text;
 using Bicep.Core.Workspaces;
@@ -92,18 +93,7 @@ namespace BicepNet.Core
                 .ToDictionary(bicepFile => bicepFile, bicepFile => GetModuleDiagnosticsPerFile(sourceFileGrouping, bicepFile, originalModulesToRestore));
         }
 
-        private static void LogDiagnostics(IReadOnlyDictionary<BicepFile, IEnumerable<IDiagnostic>> diagnosticsByBicepFile)
-        {
-            foreach (var (bicepFile, diagnostics) in diagnosticsByBicepFile)
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    LogDiagnostic(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
-                }
-            }
-        }
-
-        public static void LogDiagnostic(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
+        private static void LogDiagnostic(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
         {
             (int line, int character) = TextCoordinateConverter.GetPosition(lineStarts, diagnostic.Span.Position);
 
@@ -132,6 +122,17 @@ namespace BicepNet.Core
             // Increment counters
             if (diagnostic.Level == DiagnosticLevel.Warning) { WarningCount++; }
             if (diagnostic.Level == DiagnosticLevel.Error) { ErrorCount++; }
+        }
+
+        private static void LogDiagnostics(IReadOnlyDictionary<BicepFile, IEnumerable<IDiagnostic>> diagnosticsByBicepFile)
+        {
+            foreach (var (bicepFile, diagnostics) in diagnosticsByBicepFile)
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    LogDiagnostic(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
+                }
+            }
         }
     }
 }

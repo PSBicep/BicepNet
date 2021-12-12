@@ -8,9 +8,7 @@ using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
 using BicepNet.Core.Configuration;
-using BicepNet.Core.Models;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO.Abstractions;
 
@@ -52,19 +50,6 @@ namespace BicepNet.Core
                 new TemplateSpecRepositoryFactory(tokenCredentialFactory),
                 featureProvider);
             moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
-        }
-
-        private static (bool success, ICollection<DiagnosticEntry> diagnosticResult) LogDiagnostics(Compilation compilation)
-        {
-            var diagnosticLogger = new DiagnosticLogger();
-            foreach (var (bicepFile, diagnostics) in compilation.GetAllDiagnosticsByBicepFile())
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    diagnosticLogger.LogDiagnostics(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
-                }
-            }
-            return (diagnosticLogger.success, diagnosticLogger.diagnosticResult);
         }
     }
 }
