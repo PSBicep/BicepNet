@@ -1,5 +1,4 @@
 using BicepNet.Core;
-using Microsoft.Extensions.Logging;
 using System.Management.Automation;
 
 namespace BicepNet.PS.Commands
@@ -10,6 +9,12 @@ namespace BicepNet.PS.Commands
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
+
+        protected override void BeginProcessing()
+        {
+            base.BeginProcessing();
+            BicepWrapper.Initialize(this);
+        }
 
         protected override void ProcessRecord()
         {
