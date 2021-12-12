@@ -8,7 +8,7 @@ namespace BicepNet.PS.Commands
 {
     public class BicepNetBaseCommand : PSCmdlet, ILogger
     {
-        private readonly string name;
+        private string name;
 
         private readonly List<LogLevel> logLevels = new List<LogLevel>() {
             LogLevel.Trace,
@@ -18,8 +18,10 @@ namespace BicepNet.PS.Commands
             LogLevel.Error
         };
 
-        public BicepNetBaseCommand()
+        protected override void BeginProcessing()
         {
+            base.BeginProcessing();
+            BicepWrapper.Initialize(this);
             name = MyInvocation.InvocationName;
         }
 
@@ -48,7 +50,8 @@ namespace BicepNet.PS.Commands
                     WriteDebug(formatter(state, exception));
                     break;
                 case LogLevel.Information:
-                    WriteInformation(new InformationRecord(formatter(state, exception), name));
+                    WriteVerbose($"{name}: {formatter(state, exception)}");
+                    //WriteInformation(new InformationRecord(formatter(state, exception), name));
                     break;
                 case LogLevel.Warning:
                     WriteWarning(formatter(state, exception));
