@@ -34,9 +34,16 @@ namespace BicepNet.Core
 
             foreach (var module in moduleReferences)
             {
-                if (moduleDispatcher.GetModuleRestoreStatus(module, configuration, out _) == ModuleRestoreStatus.Succeeded)
+                var status = moduleDispatcher.GetModuleRestoreStatus(module, configuration, out _);
+                switch (status)
                 {
-                    logger.LogInformation($"Successfully restored {module.FullyQualifiedReference}");
+                    case ModuleRestoreStatus.Failed:
+                        logger.LogError($"Failed to restore {module.FullyQualifiedReference}");
+                        ErrorCount++;
+                        break;
+                    case ModuleRestoreStatus.Succeeded:
+                        logger.LogInformation($"Successfully restored {module.FullyQualifiedReference}");
+                        break;
                 }
             }
 
@@ -55,6 +62,10 @@ namespace BicepNet.Core
                 {
                     logger.LogInformation($"No new modules to restore in {inputFilePath}");
                 }
+            }
+            else
+            {
+                logger.LogError($"Failed to restore {ErrorCount} out of {moduleReferences.Count()} new modules in {inputFilePath}");
             }
         }
 
