@@ -3,6 +3,7 @@ using Bicep.Core.FileSystem;
 using Bicep.Core.Registry;
 using Bicep.Core.Semantics;
 using Bicep.Core.Workspaces;
+using BicepNet.Core.Models;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
@@ -38,7 +39,7 @@ namespace BicepNet.Core
             var compilation = new Compilation(namespaceProvider, sourceFileGrouping, buildConfiguration);
             var template = new List<string>();
 
-            var (success, dignosticResult) = LogDiagnostics(compilation);
+            var (success, diagnosticResult) = LogDiagnostics(compilation);
             if (success)
             {
                 var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
@@ -48,21 +49,8 @@ namespace BicepNet.Core
 
             return new BuildResult(
                 template,
-                dignosticResult
+                diagnosticResult
             );
-        }
-
-        private static (bool success, ICollection<DiagnosticEntry> dignosticResult) LogDiagnostics(Compilation compilation)
-        {
-            var diagnosticLogger = new DiagnosticLogger();
-            foreach (var (bicepFile, diagnostics) in compilation.GetAllDiagnosticsByBicepFile())
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    diagnosticLogger.LogDiagnostics(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
-                }
-            }
-            return (diagnosticLogger.success, diagnosticLogger.diagnosticResult);
         }
     }
 }

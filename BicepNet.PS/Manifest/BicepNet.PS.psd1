@@ -25,10 +25,13 @@
     # Description = 'A thin wrapper around bicep.'
 
     # Minimum version of the PowerShell engine required by this module
-    PowerShellVersion    = '7.1'
+    PowerShellVersion    = '7.2'
 
     # Minimum version of Microsoft .NET Framework required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
     # DotNetFrameworkVersion = '4.6.1'
+
+    # Assemblies that must be loaded prior to importing this module
+    RequiredAssemblies = @()
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport    = @()

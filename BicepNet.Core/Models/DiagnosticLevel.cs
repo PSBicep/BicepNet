@@ -1,4 +1,4 @@
-﻿namespace BicepNet.Core
+﻿namespace BicepNet.Core.Models
 {
     public enum DiagnosticLevel
     {

@@ -1,16 +1,11 @@
 using BicepNet.Core;
 using System.Management.Automation;
 
-namespace BicepNet.PS
+namespace BicepNet.PS.Commands
 {
     [Cmdlet(VerbsCommon.Find, "BicepNetModule")]
-    public class FindBicepNetModuleCommand : PSCmdlet
+    public class FindBicepNetModuleCommand : BicepNetBaseCommand
     {
-
-        public FindBicepNetModuleCommand()
-        {
-        }
-
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
@@ -19,11 +14,6 @@ namespace BicepNet.PS
         {
             var result = BicepWrapper.FindModules(Path);
             WriteObject(result);
-        }
-
-        protected override void EndProcessing()
-        {
-
         }
     }
 }

@@ -1,16 +1,11 @@
 using BicepNet.Core;
 using System.Management.Automation;
 
-namespace BicepNet.PS
+namespace BicepNet.PS.Commands
 {
     [Cmdlet(VerbsData.ConvertTo, "BicepNetFile")]
-    public class ConvertToBicepNetFile : PSCmdlet
+    public class ConvertToBicepNetFile : BicepNetBaseCommand
     {
-
-        public ConvertToBicepNetFile()
-        {
-        }
-
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
@@ -19,11 +14,6 @@ namespace BicepNet.PS
         {
             var result = BicepWrapper.Decompile(Path);
             WriteObject(result);
-        }
-
-        protected override void EndProcessing()
-        {
-
         }
     }
 }

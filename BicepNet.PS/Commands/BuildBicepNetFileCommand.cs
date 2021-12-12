@@ -1,16 +1,11 @@
 using BicepNet.Core;
 using System.Management.Automation;
 
-namespace BicepNet.PS
+namespace BicepNet.PS.Commands
 {
     [Cmdlet(VerbsLifecycle.Build, "BicepNetFile")]
-    public class BuildBicepNetFileCommand : PSCmdlet
+    public class BuildBicepNetFileCommand : BicepNetBaseCommand
     {
-
-        public BuildBicepNetFileCommand()
-        {
-        }
-
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
@@ -22,11 +17,6 @@ namespace BicepNet.PS
         {
             var result = BicepWrapper.Build(Path, NoRestore.IsPresent);
             WriteObject(result);
-        }
-
-        protected override void EndProcessing()
-        {
-
         }
     }
 }

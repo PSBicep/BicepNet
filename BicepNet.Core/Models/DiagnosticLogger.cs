@@ -1,10 +1,11 @@
 using Bicep.Core.Diagnostics;
 using Bicep.Core.Text;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace BicepNet.Core
+namespace BicepNet.Core.Models
 {
     public class DiagnosticLogger
     {
@@ -12,9 +13,10 @@ namespace BicepNet.Core
         public bool success;
         public DiagnosticLogger()
         {
-            this.diagnosticResult = new List<DiagnosticEntry>();
-            this.success = true;
+            diagnosticResult = new List<DiagnosticEntry>();
+            success = true;
         }
+
         public void LogDiagnostics(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
         {
             diagnosticResult.Add(
@@ -26,7 +28,7 @@ namespace BicepNet.Core
                         diagnostic.Message
                     )
                     );
-            this.success &= diagnostic.Level != Bicep.Core.Diagnostics.DiagnosticLevel.Error;
+            success &= diagnostic.Level != Bicep.Core.Diagnostics.DiagnosticLevel.Error;
         }
     }
 }

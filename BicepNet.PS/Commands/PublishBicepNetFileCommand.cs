@@ -1,13 +1,11 @@
 using BicepNet.Core;
 using System.Management.Automation;
 
-namespace BicepNet.PS
+namespace BicepNet.PS.Commands
 {
     [Cmdlet(VerbsData.Publish, "BicepNetFile")]
-    public class PublishBicepNetFileCommand : PSCmdlet
+    public class PublishBicepNetFileCommand : BicepNetBaseCommand
     {
-        public PublishBicepNetFileCommand() {}
-
         [Parameter(Mandatory = true, ValueFromPipeline = true)]
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
@@ -19,11 +17,6 @@ namespace BicepNet.PS
         protected override void ProcessRecord()
         {
             BicepWrapper.Publish(Path, Target, true);
-        }
-
-        protected override void EndProcessing()
-        {
-
         }
     }
 }
