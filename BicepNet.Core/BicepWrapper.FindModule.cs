@@ -23,13 +23,7 @@ namespace BicepNet.Core
 
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
 
-            logger.LogTrace(JsonSerializer.Serialize(sourceFileGrouping.ModulesToRestore));
-
             var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration);
-            foreach (var item in moduleReferences)
-            {
-                logger.LogTrace(item.FullyQualifiedReference);
-            }
 
             var tokenFactory = new TokenCredentialFactory();
             var cred = tokenFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);

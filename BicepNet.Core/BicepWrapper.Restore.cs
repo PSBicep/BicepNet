@@ -8,31 +8,54 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text.Json;
 
 namespace BicepNet.Core
 {
     public partial class BicepWrapper
     {
+        private static int WarningCount = 0;
+        private static int ErrorCount = 0;
+
         public static void Restore(string inputFilePath)
         {
+            logger.LogInformation($"Restoring external modules to local cache for file {inputFilePath}");
+
             var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
 
-            logger.LogTrace($"Restoring {inputFilePath}");
             // Create separate configuration for the build, to account for custom rule changes
             var buildConfiguration = configurationManager.GetConfiguration(inputUri);
 
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
 
             // Restore valid references, don't log any errors
-            moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration)).GetAwaiter().GetResult();
+            var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration);
+            moduleDispatcher.RestoreModules(buildConfiguration, moduleReferences).GetAwaiter().GetResult();
+
+            foreach (var module in moduleReferences)
+            {
+                if (moduleDispatcher.GetModuleRestoreStatus(module, configuration, out _) == ModuleRestoreStatus.Succeeded)
+                {
+                    logger.LogInformation($"Successfully restored {module.FullyQualifiedReference}");
+                }
+            }
 
             // update the errors based on if the restore was successful
             sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, configuration);
 
             LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, sourceFileGrouping.ModulesToRestore));
+            
+            if (ErrorCount == 0)
+            {
+                if (moduleReferences.Count() > 0)
+                {
+                    logger.LogInformation($"Successfully restored modules in {inputFilePath}");
+                }
+                else
+                {
+                    logger.LogInformation($"No new modules to restore in {inputFilePath}");
+                }
+            }
         }
 
         private static IReadOnlyDictionary<BicepFile, IEnumerable<IDiagnostic>> GetModuleRestoreDiagnosticsByBicepFile(SourceFileGrouping sourceFileGrouping, ImmutableHashSet<ModuleDeclarationSyntax> originalModulesToRestore)
@@ -49,10 +72,6 @@ namespace BicepNet.Core
                     if (grouping.TryLookUpModuleErrorDiagnostic(module, out var error))
                     {
                         yield return error;
-                    }
-                    else
-                    {
-                        logger.LogTrace($"Successfully restored {SyntaxHelper.TryGetModulePath(module, out _)}");
                     }
                 }
             }
@@ -99,9 +118,9 @@ namespace BicepNet.Core
                     break;
             }
 
-            //// Increment counters
-            //if (diagnostic.Level == Bicep.Core.Diagnostics.DiagnosticLevel.Warning) { this.WarningCount++; }
-            //if (diagnostic.Level == Bicep.Core.Diagnostics.DiagnosticLevel.Error) { this.ErrorCount++; }
+            // Increment counters
+            if (diagnostic.Level == DiagnosticLevel.Warning) { WarningCount++; }
+            if (diagnostic.Level == DiagnosticLevel.Error) { ErrorCount++; }
         }
     }
 }
