@@ -18,7 +18,10 @@ namespace BicepNet.Core
         {
             var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
 
-            var moduleReference = moduleDispatcher.TryGetModuleReference(targetModuleReference, configuration, out var failureBuilder);
+            // Create separate configuration for the build, to account for custom rule changes
+            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
+
+            var moduleReference = moduleDispatcher.TryGetModuleReference(targetModuleReference, buildConfiguration, out var failureBuilder);
 
             if (moduleReference is null)
             {
@@ -36,9 +39,6 @@ namespace BicepNet.Core
             {
                 throw new BicepException($"The specified module target \"{targetModuleReference}\" is not supported.");
             }
-
-            // Create separate configuration for the build, to account for custom rule changes
-            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
 
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
             var compilation = new Compilation(namespaceProvider, sourceFileGrouping, buildConfiguration);
