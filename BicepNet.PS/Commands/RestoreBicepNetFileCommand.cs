@@ -1,4 +1,5 @@
 using BicepNet.Core;
+using Microsoft.Extensions.Logging;
 using System.Management.Automation;
 
 namespace BicepNet.PS.Commands

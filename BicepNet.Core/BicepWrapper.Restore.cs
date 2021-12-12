@@ -19,7 +19,8 @@ namespace BicepNet.Core
         public static void Restore(string inputFilePath)
         {
             var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
-            
+
+            logger.LogTrace($"Restoring {inputFilePath}");
             // Create separate configuration for the build, to account for custom rule changes
             var buildConfiguration = configurationManager.GetConfiguration(inputUri);
 
