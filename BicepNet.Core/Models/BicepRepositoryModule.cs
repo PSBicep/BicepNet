@@ -12,5 +12,10 @@ namespace BicepNet.Core.Models
         public string Repository { get; set; }
         public IEnumerable<string> Tags { get; set; }
         public DateTimeOffset Created { get; set; }
+
+        public override string ToString()
+        {
+            return string.Join(", ", Tags);
+        }
     }
 }
