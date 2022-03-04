@@ -4,7 +4,7 @@
     RootModule           = 'Module.NetCore/BicepNet.PS.dll'
 
     # Version number of this module.
-    ModuleVersion        = '1.0.7'
+    ModuleVersion        = '2.0.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -25,16 +25,27 @@
     # Description = 'A thin wrapper around bicep.'
 
     # Minimum version of the PowerShell engine required by this module
-    PowerShellVersion    = '7.1'
+    PowerShellVersion    = '7.2'
 
     # Minimum version of Microsoft .NET Framework required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
     # DotNetFrameworkVersion = '4.6.1'
+
+    # Assemblies that must be loaded prior to importing this module
+    RequiredAssemblies = @()
 
     # Functions to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no functions to export.
     FunctionsToExport    = @()
 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
-    CmdletsToExport      = @('Build-BicepNetFile', 'Get-BicepNetVersion', 'ConvertTo-BicepNetFile', 'Publish-BicepNetFile', 'Restore-BicepNetFile')
+    CmdletsToExport      = @(
+        'Get-BicepNetVersion'
+        'Get-BicepNetCachePath'
+        'Build-BicepNetFile'
+        'ConvertTo-BicepNetFile'
+        'Publish-BicepNetFile'
+        'Restore-BicepNetFile'
+        'Find-BicepNetModule'
+    )
 
     # Variables to export from this module
     VariablesToExport    = @()
@@ -44,7 +55,6 @@
 
     # Private data to pass to the module specified in RootModule/ModuleToProcess. This may also contain a PSData hashtable with additional module metadata used by PowerShell.
     PrivateData          = @{
-
         PSData = @{
             Prerelease = ''
         } # End of PSData hashtable

@@ -10,7 +10,7 @@ param(
     $Full
 )
 
-$netcoreversion = 'net5.0'
+$netcoreversion = 'net6.0'
 
 $ProjectRoot = "$PSScriptRoot/.."
 $outPath = "$ProjectRoot/out/BicepNet.PS"
@@ -46,7 +46,7 @@ Pop-Location
 
 $commonFiles = [System.Collections.Generic.HashSet[string]]::new()
 
-Get-ChildItem -Path "$ProjectRoot/BicepNet.Core/bin/$Configuration/netstandard2.1/publish" |
+Get-ChildItem -Path "$ProjectRoot/BicepNet.Core/bin/$Configuration/$netcoreversion/publish" |
 Where-Object { $_.Extension -in '.dll', '.pdb' } |
 ForEach-Object { 
     [void]$commonFiles.Add($_.Name); 

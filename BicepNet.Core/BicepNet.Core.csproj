@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -12,10 +12,14 @@
   <ItemGroup>
     <EmbeddedResource Include="Configuration\bicepconfig.json" />
   </ItemGroup>
-  
+
   <ItemGroup>
-    <ProjectReference Include="..\TMP\bicep\src\Bicep.Core\Bicep.Core.csproj" />
-    <ProjectReference Include="..\TMP\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" /> 
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\TMP\bicep\src\Bicep.Core\Bicep.Core.csproj" />
+    <ProjectReference Include="..\TMP\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" />
   </ItemGroup>
 
 </Project>
