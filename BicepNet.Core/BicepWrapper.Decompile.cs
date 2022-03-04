@@ -20,9 +20,9 @@ namespace BicepNet.Core
             Uri outputUri = PathHelper.FilePathToFileUrl(outputPath);
 
             var template = new Dictionary<string,string>();
-            var templateDecompiler = new TemplateDecompiler(new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider), fileResolver, moduleRegistryProvider, configurationManager);
+            var templateDecompiler = new TemplateDecompiler(featureProvider, namespaceProvider, fileResolver, moduleRegistryProvider, configurationManager);
             var decompilation = templateDecompiler.DecompileFileWithModules(inputUri, outputUri);
-            
+
             foreach (var (fileUri, bicepOutput) in decompilation.filesToSave)
             {
                 template.Add(fileUri.LocalPath,bicepOutput);
