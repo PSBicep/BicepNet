@@ -3,11 +3,11 @@ using System.Management.Automation;
 
 namespace BicepNet.PS.Commands
 {
-    [Cmdlet(VerbsCommon.Get, "BicepNetCachePath")]
+    [Cmdlet(VerbsCommon.Get, "BicepNetCachePath", DefaultParameterSetName = "br")]
     [CmdletBinding]
     public class GetBicepNetCachePathCommand : BicepNetBaseCommand
     {
-        [Parameter(Mandatory = true, ParameterSetName="br")]
+        [Parameter(ParameterSetName="br")]
         public SwitchParameter Oci { get; set; }
 
         [Parameter(Mandatory = true, ParameterSetName = "ts")]
@@ -16,7 +16,7 @@ namespace BicepNet.PS.Commands
         protected override void EndProcessing()
         {
             string result = "";
-            if (Oci.IsPresent)
+            if (Oci.IsPresent || ParameterSetName == "br")
             {
                 result = BicepWrapper.OciCachePath;
             }

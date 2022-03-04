@@ -35,13 +35,13 @@ namespace BicepNet.PS.Commands
             switch (logLevel)
             {
                 case LogLevel.Trace:
-                    WriteVerbose($"{name}: {formatter(state, exception)}");
+                    WriteVerbose(formatter(state, exception));
                     break;
                 case LogLevel.Debug:
                     WriteDebug(formatter(state, exception));
                     break;
                 case LogLevel.Information:
-                    WriteVerbose($"{name}: {formatter(state, exception)}");
+                    WriteVerbose(formatter(state, exception));
                     //WriteInformation(new InformationRecord(formatter(state, exception), name));
                     break;
                 case LogLevel.Warning:
