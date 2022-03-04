@@ -6,10 +6,8 @@ using System.Management.Automation;
 
 namespace BicepNet.PS.Commands
 {
-    public class BicepNetBaseCommand : PSCmdlet, ILogger
+    public partial class BicepNetBaseCommand : ILogger
     {
-        private string name;
-
         private readonly List<LogLevel> logLevels = new List<LogLevel>() {
             LogLevel.Trace,
             LogLevel.Debug,
@@ -17,13 +15,6 @@ namespace BicepNet.PS.Commands
             LogLevel.Warning,
             LogLevel.Error
         };
-
-        protected override void BeginProcessing()
-        {
-            base.BeginProcessing();
-            BicepWrapper.Initialize(this);
-            name = MyInvocation.InvocationName;
-        }
 
         public IDisposable BeginScope<TState>(TState state) => default!;
 
