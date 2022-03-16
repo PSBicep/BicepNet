@@ -4,7 +4,7 @@
     RootModule           = 'Module.NetCore/BicepNet.PS.dll'
 
     # Version number of this module.
-    ModuleVersion        = '2.0.1'
+    ModuleVersion        = '2.0.2'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
