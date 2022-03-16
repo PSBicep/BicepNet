@@ -1,3 +1,4 @@
+using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Diagnostics;
 using Bicep.Core.Emit;
 using Bicep.Core.Exceptions;
@@ -41,7 +42,7 @@ namespace BicepNet.Core
             }
 
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
-            var compilation = new Compilation(namespaceProvider, sourceFileGrouping, buildConfiguration);
+            var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, new LinterAnalyzer(buildConfiguration));
             var template = new List<string>();
 
             bool success = LogDiagnostics(compilation);
