@@ -124,6 +124,29 @@ namespace BicepNet.Core
                         repos.Add(bicepRepository);
                     }
                 }
+                catch (Azure.RequestFailedException ex)
+                {
+                    switch (ex.Status)
+                    {
+                        case 401:
+                            logger.LogWarning($"The credentials provided are not authorized to the following registry: {endpoint}");
+                            break;
+                        default:
+                            logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                            break;
+                    }
+                }
+                catch (System.AggregateException ex)
+                {
+                    if (ex.InnerException != null)
+                    {
+                        logger.LogWarning(ex.InnerException.Message);
+                    }
+                    else
+                    {
+                        logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                    }
+                }
                 catch (Exception ex)
                 {
                     logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
