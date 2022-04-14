@@ -2,6 +2,16 @@ param(
     $bicepVersion
 )
 
+try {
+    [version]$DotNetVersion = dotnet --version
+    if ($DotNetVersion.Major -lt 6) {
+        throw
+    }
+}
+catch {
+    throw '.net 6 is required to build BicepNet. Get it at https://dotnet.microsoft.com/en-us/download/dotnet/6.0'
+}
+
 if(-not $bicepVersion) {
     $bicepVersion = Get-Content -Path "$PSScriptRoot\..\.bicepVersion"
     $bicepVersion = $bicepVersion.Trim()
