@@ -78,8 +78,7 @@ namespace BicepNet.Core
             }
 
             // Create credential and options
-            var tokenFactory = new TokenCredentialFactory();
-            var cred = tokenFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
+            var cred = tokenCredentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
             var options = new ContainerRegistryClientOptions();
             options.Diagnostics.ApplySharedContainerRegistrySettings();
             options.Audience = new ContainerRegistryAudience(configuration.Cloud.ResourceManagerAudience);

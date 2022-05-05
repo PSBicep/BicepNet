@@ -14,6 +14,10 @@ namespace BicepNet.PS.Commands
         [ValidateNotNullOrEmpty]
         public string Target { get; set; }
 
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        public string Token { get; set; }
+
         protected override void ProcessRecord()
         {
             BicepWrapper.Publish(Path, Target, true);

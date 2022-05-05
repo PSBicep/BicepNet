@@ -15,11 +15,13 @@ namespace BicepNet.Core
 {
     public partial class BicepWrapper
     {
-        private static int WarningCount = 0;
-        private static int ErrorCount = 0;
+        private static int WarningCount;
+        private static int ErrorCount;
 
         public static void Restore(string inputFilePath)
         {
+            ErrorCount = 0;
+            WarningCount = 0;
             logger.LogInformation($"Restoring external modules to local cache for file {inputFilePath}");
 
             var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);

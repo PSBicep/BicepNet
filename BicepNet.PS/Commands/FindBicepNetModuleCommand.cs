@@ -18,6 +18,12 @@ namespace BicepNet.PS.Commands
         [Parameter(ParameterSetName = "Cache")]
         public SwitchParameter Cache { get; set; }
 
+        [Parameter(ParameterSetName = "Path")]
+        [Parameter(ParameterSetName = "Registry")]
+        [Parameter(ParameterSetName = "Cache")]
+        [ValidateNotNullOrEmpty()]
+        public string Token { get; set; }
+
         protected override void ProcessRecord()
         {
             switch (ParameterSetName)

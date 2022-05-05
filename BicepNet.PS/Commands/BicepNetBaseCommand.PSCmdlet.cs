@@ -1,7 +1,4 @@
 ﻿using BicepNet.Core;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Management.Automation;
 
 namespace BicepNet.PS.Commands
@@ -12,7 +9,14 @@ namespace BicepNet.PS.Commands
         protected override void BeginProcessing()
         {
             base.BeginProcessing();
-            BicepWrapper.Initialize(this);
+
+            // Try to get the value of the Token parameter
+            // Only some commands have this parameter, so it's allowed to fail
+            // Since object and string can be null, we can still provide it to BicepWrapper
+            object token;
+            MyInvocation.BoundParameters.TryGetValue("Token", out token);
+
+            BicepWrapper.Initialize(this, (string)token);
             name = MyInvocation.InvocationName;
         }
     }

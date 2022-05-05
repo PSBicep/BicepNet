@@ -69,7 +69,7 @@ namespace BicepNet.Core.Configuration
             return JsonElementFactory.CreateElement(stream);
         }
 
-        private string? DiscoverConfigurationFile(string? currentDirectory)
+        private string DiscoverConfigurationFile(string currentDirectory)
         {
             while (!string.IsNullOrEmpty(currentDirectory))
             {

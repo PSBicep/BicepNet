@@ -9,7 +9,7 @@ namespace BicepNet.Core
 {
     public partial class BicepWrapper
     {
-        public static IDictionary<string, string> Decompile(string templatePath, string? outputDir = null, string? outputFile = null)
+        public static IDictionary<string, string> Decompile(string templatePath, string outputDir = null, string outputFile = null)
         {
             var inputPath = PathHelper.ResolvePath(templatePath);
 

@@ -10,6 +10,10 @@ namespace BicepNet.PS.Commands
         [ValidateNotNullOrEmpty]
         public string Path { get; set; }
 
+        [Parameter()]
+        [ValidateNotNullOrEmpty()]
+        public string Token { get; set; }
+
         protected override void ProcessRecord()
         {
             BicepWrapper.Restore(Path);

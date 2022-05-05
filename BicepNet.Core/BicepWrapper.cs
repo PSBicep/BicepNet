@@ -1,3 +1,4 @@
+using Azure.Core;
 using Bicep.Core.Configuration;
 using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
@@ -7,8 +8,10 @@ using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
+using BicepNet.Core.Authentication;
 using BicepNet.Core.Configuration;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
@@ -31,12 +34,22 @@ namespace BicepNet.Core
         private static IReadOnlyWorkspace workspace;
         private static INamespaceProvider namespaceProvider;
         private static IConfigurationManager configurationManager;
-        private static IContainerRegistryClientFactory clientFactory;
+        private static ITokenCredentialFactory tokenCredentialFactory;
         private static ILogger logger;
 
-        public static void Initialize(ILogger bicepLogger)
+        internal static TokenCredential ExternalCredential;
+
+        public static void Initialize(ILogger bicepLogger, string token)
         {
             logger = bicepLogger;
+            // Reset credential between commands
+            ExternalCredential = null;
+
+            if (!string.IsNullOrEmpty(token))
+            {
+                logger.LogInformation("Token provided as authentication...");
+                ExternalCredential = new ExternalTokenCredential(token, DateTimeOffset.Now.AddDays(1));
+            }
 
             workspace = new Workspace();
             fileSystem = new FileSystem();
@@ -48,10 +61,9 @@ namespace BicepNet.Core
 
             namespaceProvider = new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider);
 
-            var tokenCredentialFactory = new TokenCredentialFactory();
-            clientFactory = new ContainerRegistryClientFactory(tokenCredentialFactory);
+            tokenCredentialFactory = new BicepNetTokenCredentialFactory();
             moduleRegistryProvider = new DefaultModuleRegistryProvider(fileResolver,
-                clientFactory,
+                new ContainerRegistryClientFactory(tokenCredentialFactory),
                 new TemplateSpecRepositoryFactory(tokenCredentialFactory),
                 featureProvider);
             moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
