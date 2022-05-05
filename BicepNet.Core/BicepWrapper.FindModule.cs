@@ -107,7 +107,7 @@ namespace BicepNet.Core
                         };
 
                         var repository = client.GetRepository(repositoryName);
-                        var repositoryManifests = repository.GetManifestPropertiesCollection();
+                        var repositoryManifests = repository.GetAllManifestProperties();
 
                         foreach (var moduleVersion in repositoryManifests)
                         {
