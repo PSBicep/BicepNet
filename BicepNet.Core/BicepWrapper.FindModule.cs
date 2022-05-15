@@ -107,19 +107,31 @@ namespace BicepNet.Core
                         };
 
                         var repository = client.GetRepository(repositoryName);
-                        var repositoryManifests = repository.GetManifestPropertiesCollection();
+                        var repositoryManifests = repository.GetAllManifestProperties();
 
                         foreach (var moduleVersion in repositoryManifests)
                         {
+                            var artifact = repository.GetArtifact(moduleVersion.Digest);
+                            var tags = artifact.GetTagPropertiesCollection();
+
                             logger.LogInformation($"Found versions of module {repositoryName}:\n{string.Join("\n", moduleVersion.Tags)}");
                             bicepRepository.ModuleVersions.Add(new BicepRepositoryModule
                             {
                                 Digest = moduleVersion.Digest,
                                 Repository = repositoryName,
-                                Tags = moduleVersion.Tags,
-                                Created = moduleVersion.CreatedOn
+                                Tags = tags.Select(t => new BicepRepositoryModuleTag
+                                {
+                                    Name = t.Name,
+                                    Digest = t.Digest,
+                                    UpdatedOn = t.LastUpdatedOn,
+                                    CreatedOn = t.CreatedOn,
+                                    Target = $"br:{endpoint}/{repositoryName}:{t.Name}"
+                                }).ToList(),
+                                CreatedOn = moduleVersion.CreatedOn,
+                                UpdatedOn = moduleVersion.LastUpdatedOn
                             });
                         }
+                        bicepRepository.ModuleVersions = bicepRepository.ModuleVersions.OrderByDescending(t => t.UpdatedOn).ToList();
 
                         repos.Add(bicepRepository);
                     }
