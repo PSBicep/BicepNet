@@ -8,7 +8,9 @@ using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
 using BicepNet.Core.Configuration;
+using BicepNet.Core.Models;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
@@ -30,7 +32,7 @@ namespace BicepNet.Core
         private static IModuleRegistryProvider moduleRegistryProvider;
         private static IReadOnlyWorkspace workspace;
         private static INamespaceProvider namespaceProvider;
-        private static IConfigurationManager configurationManager;
+        private static BicepNetConfigurationManager configurationManager;
         private static IContainerRegistryClientFactory clientFactory;
         private static ILogger logger;
 
@@ -58,6 +60,12 @@ namespace BicepNet.Core
 
             OciCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.Oci);
             TemplateSpecsCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.TemplateSpecs);
+        }
+
+        public static BicepConfigInfo GetBicepConfigInfo(string path)
+        {
+            var inputUri = PathHelper.FilePathToFileUrl(path);
+            return configurationManager.GetConfigurationInfo(inputUri);
         }
     }
 }

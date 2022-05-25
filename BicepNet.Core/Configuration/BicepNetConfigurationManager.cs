@@ -2,6 +2,7 @@
 using Bicep.Core.Configuration;
 using Bicep.Core.Extensions;
 using Bicep.Core.Json;
+using BicepNet.Core.Models;
 using System;
 using System.IO;
 using System.IO.Abstractions;
@@ -100,6 +101,25 @@ namespace BicepNet.Core.Configuration
             }
 
             return null;
+        }
+
+        public BicepConfigInfo GetConfigurationInfo(Uri sourceFileUri)
+        {
+            var configurationPath = DiscoverConfigurationFile(fileSystem.Path.GetDirectoryName(sourceFileUri.LocalPath));
+
+            if (configurationPath != null)
+            {
+                return new BicepConfigInfo(configurationPath, File.ReadAllText(configurationPath));
+            }
+            else
+            {
+                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string result = reader.ReadToEnd();
+                    return new BicepConfigInfo("Default", result);
+                }
+            }
         }
     }
 }

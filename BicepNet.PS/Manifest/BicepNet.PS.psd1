@@ -4,7 +4,7 @@
     RootModule           = 'Module.NetCore/BicepNet.PS.dll'
 
     # Version number of this module.
-    ModuleVersion        = '2.0.4'
+    ModuleVersion        = '2.0.5'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -40,6 +40,7 @@
     CmdletsToExport      = @(
         'Get-BicepNetVersion'
         'Get-BicepNetCachePath'
+        'Get-BicepNetConfig'
         'Build-BicepNetFile'
         'ConvertTo-BicepNetFile'
         'Publish-BicepNetFile'
