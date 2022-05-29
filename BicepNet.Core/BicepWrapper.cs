@@ -62,10 +62,17 @@ namespace BicepNet.Core
             TemplateSpecsCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.TemplateSpecs);
         }
 
-        public static BicepConfigInfo GetBicepConfigInfo(string path)
+        public static BicepConfigInfo GetBicepConfigInfo(string path = null)
         {
-            var inputUri = PathHelper.FilePathToFileUrl(path);
-            return configurationManager.GetConfigurationInfo(inputUri);
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                var inputUri = PathHelper.FilePathToFileUrl(path);
+                return configurationManager.GetConfigurationInfo(inputUri);
+            }
+            else
+            {
+                return configurationManager.GetConfigurationInfo();
+            }
         }
     }
 }

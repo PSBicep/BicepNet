@@ -103,22 +103,31 @@ namespace BicepNet.Core.Configuration
             return null;
         }
 
+        // Default config
+        public BicepConfigInfo GetConfigurationInfo()
+        {
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
+            using (StreamReader reader = new StreamReader(stream))
+            {
+                string result = reader.ReadToEnd();
+                return new BicepConfigInfo("Default", result);
+            }
+        }
+
         public BicepConfigInfo GetConfigurationInfo(Uri sourceFileUri)
         {
             var configurationPath = DiscoverConfigurationFile(fileSystem.Path.GetDirectoryName(sourceFileUri.LocalPath));
 
             if (configurationPath != null)
             {
-                return new BicepConfigInfo(configurationPath, File.ReadAllText(configurationPath));
+                var stream = fileSystem.FileStream.Create(configurationPath, FileMode.Open, FileAccess.Read);
+                var content = BuiltInConfigurationElement.Merge(JsonElementFactory.CreateElement(stream)).ToFormattedString();
+                return new BicepConfigInfo(configurationPath, content);
             }
             else
             {
-                var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
-                using (StreamReader reader = new StreamReader(stream))
-                {
-                    string result = reader.ReadToEnd();
-                    return new BicepConfigInfo("Default", result);
-                }
+                // Return default
+                return GetConfigurationInfo();
             }
         }
     }
