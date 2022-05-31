@@ -106,28 +106,35 @@ namespace BicepNet.Core.Configuration
         // Default config
         public BicepConfigInfo GetConfigurationInfo()
         {
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
-            using (StreamReader reader = new StreamReader(stream))
+            var builtInStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
+            using (StreamReader reader = new StreamReader(builtInStream))
             {
                 string result = reader.ReadToEnd();
                 return new BicepConfigInfo("Default", result);
             }
         }
 
-        public BicepConfigInfo GetConfigurationInfo(Uri sourceFileUri)
+        public BicepConfigInfo GetConfigurationInfo(BicepConfigScope mode, Uri sourceFileUri)
         {
             var configurationPath = DiscoverConfigurationFile(fileSystem.Path.GetDirectoryName(sourceFileUri.LocalPath));
 
-            if (configurationPath != null)
+            if (configurationPath == null)
             {
-                var stream = fileSystem.FileStream.Create(configurationPath, FileMode.Open, FileAccess.Read);
-                var content = BuiltInConfigurationElement.Merge(JsonElementFactory.CreateElement(stream)).ToFormattedString();
-                return new BicepConfigInfo(configurationPath, content);
+                throw new ArgumentException("No valid configuration file found!");
             }
-            else
+
+            switch (mode)
             {
-                // Return default
-                return GetConfigurationInfo();
+                case BicepConfigScope.Merged:
+                    var fileStream = fileSystem.FileStream.Create(configurationPath, FileMode.Open, FileAccess.Read);
+                    string content = BuiltInConfigurationElement.Merge(JsonElementFactory.CreateElement(fileStream)).ToFormattedString();
+                    return new BicepConfigInfo(configurationPath, content);
+                case BicepConfigScope.Default:
+                    return GetConfigurationInfo();
+                case BicepConfigScope.Local:
+                    return new BicepConfigInfo(configurationPath, File.ReadAllText(configurationPath));
+                default:
+                    throw new ArgumentException("BicepConfigMode not valid!");
             }
         }
     }

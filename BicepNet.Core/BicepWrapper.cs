@@ -62,16 +62,22 @@ namespace BicepNet.Core
             TemplateSpecsCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.TemplateSpecs);
         }
 
-        public static BicepConfigInfo GetBicepConfigInfo(string path = null)
+        public static BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path)
         {
-            if (!string.IsNullOrWhiteSpace(path))
+            switch (scope)
             {
-                var inputUri = PathHelper.FilePathToFileUrl(path);
-                return configurationManager.GetConfigurationInfo(inputUri);
-            }
-            else
-            {
-                return configurationManager.GetConfigurationInfo();
+                case BicepConfigScope.Default:
+                    return configurationManager.GetConfigurationInfo();
+                // Merged and Local uses the same logic
+                case BicepConfigScope.Merged:
+                case BicepConfigScope.Local:
+                    if (path == null)
+                    {
+                        throw new ArgumentException("Path must be provided for this Scope!");
+                    }
+                    return configurationManager.GetConfigurationInfo(scope, PathHelper.FilePathToFileUrl(path));
+                default:
+                    throw new ArgumentException("BicepConfigMode not valid!");
             }
         }
     }
