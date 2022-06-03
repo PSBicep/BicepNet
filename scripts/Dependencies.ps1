@@ -3,7 +3,7 @@ param(
 )
 
 try {
-    [version]$DotNetVersion = dotnet --version
+    [version]$DotNetVersion = (dotnet --version) -split '-' | Select-Object -First 1
     if ($DotNetVersion.Major -lt 6) {
         throw
     }

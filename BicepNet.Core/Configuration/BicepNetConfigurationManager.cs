@@ -2,6 +2,7 @@
 using Bicep.Core.Configuration;
 using Bicep.Core.Extensions;
 using Bicep.Core.Json;
+using BicepNet.Core.Models;
 using System;
 using System.IO;
 using System.IO.Abstractions;
@@ -100,6 +101,41 @@ namespace BicepNet.Core.Configuration
             }
 
             return null;
+        }
+
+        // Default config
+        public BicepConfigInfo GetConfigurationInfo()
+        {
+            var builtInStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
+            using (StreamReader reader = new StreamReader(builtInStream))
+            {
+                string result = reader.ReadToEnd();
+                return new BicepConfigInfo("Default", result);
+            }
+        }
+
+        public BicepConfigInfo GetConfigurationInfo(BicepConfigScope mode, Uri sourceFileUri)
+        {
+            var configurationPath = DiscoverConfigurationFile(fileSystem.Path.GetDirectoryName(sourceFileUri.LocalPath));
+
+            if (configurationPath == null)
+            {
+                throw new ArgumentException("No valid configuration file found!");
+            }
+
+            switch (mode)
+            {
+                case BicepConfigScope.Merged:
+                    var fileStream = fileSystem.FileStream.Create(configurationPath, FileMode.Open, FileAccess.Read);
+                    string content = BuiltInConfigurationElement.Merge(JsonElementFactory.CreateElement(fileStream)).ToFormattedString();
+                    return new BicepConfigInfo(configurationPath, content);
+                case BicepConfigScope.Default:
+                    return GetConfigurationInfo();
+                case BicepConfigScope.Local:
+                    return new BicepConfigInfo(configurationPath, File.ReadAllText(configurationPath));
+                default:
+                    throw new ArgumentException("BicepConfigMode not valid!");
+            }
         }
     }
 }
