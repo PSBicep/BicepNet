@@ -20,7 +20,7 @@ namespace BicepNet.Core
         public static IList<string> Build(string bicepPath, bool noRestore = false)
         {
             using var sw = new StringWriter();
-            using var writer = new JsonTextWriter(sw)
+            using var writer = new SourceAwareJsonTextWriter(sw)
             {
                 Formatting = Formatting.Indented
             };
