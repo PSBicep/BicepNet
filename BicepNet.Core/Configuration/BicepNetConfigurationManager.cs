@@ -21,8 +21,6 @@ namespace BicepNet.Core.Configuration
         private static readonly Lazy<RootConfiguration> BuiltInConfigurationLazy =
             new Lazy<RootConfiguration>(() => RootConfiguration.Bind(BuiltInConfigurationElement));
 
-        private static readonly Lazy<RootConfiguration> BuiltInConfigurationWithAnalyzersDisabledLazy =
-            new Lazy<RootConfiguration>(() => RootConfiguration.Bind(BuiltInConfigurationElement, disableAnalyzers: true));
         private readonly IFileSystem fileSystem;
 
         public BicepNetConfigurationManager(IFileSystem fileSystem)
@@ -30,9 +28,7 @@ namespace BicepNet.Core.Configuration
             this.fileSystem = fileSystem;
         }
 
-        public RootConfiguration GetBuiltInConfiguration(bool disableAnalyzers = false) => disableAnalyzers
-            ? BuiltInConfigurationWithAnalyzersDisabledLazy.Value
-            : BuiltInConfigurationLazy.Value;
+        public RootConfiguration GetBuiltInConfiguration() => BuiltInConfigurationLazy.Value;
 
         public RootConfiguration GetConfiguration(Uri sourceFileUri)
         {
