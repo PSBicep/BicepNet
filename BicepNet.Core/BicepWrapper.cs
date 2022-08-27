@@ -19,27 +19,25 @@ namespace BicepNet.Core;
 
 public static partial class BicepWrapper
 {
-    public static string BicepVersion { get; } = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion;
+    public static string BicepVersion { get; } = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion ?? "dev";
     public static string OciCachePath { get; private set; }
     public static string TemplateSpecsCachePath { get; private set; }
 
     // Services shared between commands
-    private static RootConfiguration configuration;
-    private static IFileSystem fileSystem;
-    private static IModuleDispatcher moduleDispatcher;
-    private static IFileResolver fileResolver;
-    private static IFeatureProvider featureProvider;
-    private static IModuleRegistryProvider moduleRegistryProvider;
-    private static IReadOnlyWorkspace workspace;
-    private static INamespaceProvider namespaceProvider;
-    private static BicepNetConfigurationManager configurationManager;
-    private static IContainerRegistryClientFactory clientFactory;
-    private static ILogger logger;
+    private static readonly RootConfiguration configuration;
+    private static readonly IFileSystem fileSystem;
+    private static readonly IModuleDispatcher moduleDispatcher;
+    private static readonly IFileResolver fileResolver;
+    private static readonly IFeatureProvider featureProvider;
+    private static readonly IModuleRegistryProvider moduleRegistryProvider;
+    private static readonly IReadOnlyWorkspace workspace;
+    private static readonly INamespaceProvider namespaceProvider;
+    private static readonly BicepNetConfigurationManager configurationManager;
+    private static readonly IContainerRegistryClientFactory clientFactory;
+    private static ILogger? logger;
 
-    public static void Initialize(ILogger bicepLogger)
+    static BicepWrapper()
     {
-        logger = bicepLogger;
-
         workspace = new Workspace();
         fileSystem = new FileSystem();
         fileResolver = new FileResolver();
@@ -60,6 +58,11 @@ public static partial class BicepWrapper
 
         OciCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.Oci);
         TemplateSpecsCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.TemplateSpecs);
+    }
+
+    public static void Initialize(ILogger bicepLogger)
+    {
+        logger = bicepLogger;
     }
 
     public static BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path)
