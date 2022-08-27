@@ -1,3 +1,4 @@
+using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
 using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
@@ -24,6 +25,7 @@ public static partial class BicepWrapper
     public static string TemplateSpecsCachePath { get; private set; }
 
     // Services shared between commands
+    private static IApiVersionProvider apiVersionProvider;
     private static RootConfiguration configuration;
     private static IFileSystem fileSystem;
     private static IModuleDispatcher moduleDispatcher;
@@ -40,6 +42,7 @@ public static partial class BicepWrapper
     {
         logger = bicepLogger;
 
+        apiVersionProvider = new ApiVersionProvider();
         workspace = new Workspace();
         fileSystem = new FileSystem();
         fileResolver = new FileResolver();

@@ -36,7 +36,7 @@ public partial class BicepWrapper
             var buildConfiguration = configurationManager.GetConfiguration(inputUri);
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
 
-            var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.SourceFilesByModuleDeclaration.Keys, buildConfiguration);
+            var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration);
             // FullyQualifiedReferences are already unwrapped from potential local aliases
             var fullReferences = moduleReferences.Select(m => m.FullyQualifiedReference);
             // Create objects with all module references grouped by endpoint
