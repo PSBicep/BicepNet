@@ -13,88 +13,87 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 
-namespace BicepNet.Core
+namespace BicepNet.Core;
+
+public partial class BicepWrapper
 {
-    public partial class BicepWrapper
+    public static IList<string> Build(string bicepPath, bool noRestore = false)
     {
-        public static IList<string> Build(string bicepPath, bool noRestore = false)
+        using var sw = new StringWriter();
+        using var writer = new SourceAwareJsonTextWriter(sw)
         {
-            using var sw = new StringWriter();
-            using var writer = new SourceAwareJsonTextWriter(sw)
+            Formatting = Formatting.Indented
+        };
+
+        var inputUri = PathHelper.FilePathToFileUrl(bicepPath);
+
+        // Create separate configuration for the build, to account for custom rule changes
+        var buildConfiguration = configurationManager.GetConfiguration(inputUri);
+
+        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
+
+        // If user did not specify NoRestore, restore modules and rebuild
+        if (!noRestore)
+        {
+            if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration)).GetAwaiter().GetResult())
             {
-                Formatting = Formatting.Indented
-            };
+                sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, buildConfiguration);
+            }
+        }
 
-            var inputUri = PathHelper.FilePathToFileUrl(bicepPath);
+        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, new LinterAnalyzer(buildConfiguration));
+        var template = new List<string>();
 
-            // Create separate configuration for the build, to account for custom rule changes
-            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
+        bool success = LogDiagnostics(compilation);
+        if (success)
+        {
+            var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
+            emitter.Emit(writer);
+            template.Add(sw.ToString());
+        }
 
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
+        return template;
+    }
 
-            // If user did not specify NoRestore, restore modules and rebuild
-            if (!noRestore)
+    private static bool LogDiagnostics(Compilation compilation)
+    {
+        bool success = true;
+
+        foreach (var (bicepFile, diagnostics) in compilation.GetAllDiagnosticsByBicepFile())
+        {
+            foreach (var diagnostic in diagnostics)
             {
-                if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration)).GetAwaiter().GetResult())
+                string output = GetDiagnosticsOutput(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
+
+                switch (diagnostic.Level)
                 {
-                    sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, buildConfiguration);
+                    case DiagnosticLevel.Info:
+                        logger?.LogInformation(output);
+                        break;
+                    case DiagnosticLevel.Warning:
+                        logger?.LogWarning(output);
+                        break;
+                    case DiagnosticLevel.Error:
+                        logger?.LogError(output);
+                        success = false;
+                        break;
                 }
             }
-
-            var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, new LinterAnalyzer(buildConfiguration));
-            var template = new List<string>();
-
-            bool success = LogDiagnostics(compilation);
-            if (success)
-            {
-                var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
-                emitter.Emit(writer);
-                template.Add(sw.ToString());
-            }
-
-            return template;
         }
 
-        private static bool LogDiagnostics(Compilation compilation)
-        {
-            bool success = true;
+        return success;
+    }
 
-            foreach (var (bicepFile, diagnostics) in compilation.GetAllDiagnosticsByBicepFile())
-            {
-                foreach (var diagnostic in diagnostics)
-                {
-                    string output = GetDiagnosticsOutput(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
+    private static string GetDiagnosticsOutput(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
+    {
+        var localPath = fileUri.LocalPath;
+        var position = TextCoordinateConverter.GetPosition(lineStarts, diagnostic.Span.Position);
+        var line = position.line;
+        var character = position.character;
+        var level = diagnostic.Level;
+        var code = diagnostic.Code;
+        var message = diagnostic.Message;
 
-                    switch (diagnostic.Level)
-                    {
-                        case DiagnosticLevel.Info:
-                            logger.LogInformation(output);
-                            break;
-                        case DiagnosticLevel.Warning:
-                            logger.LogWarning(output);
-                            break;
-                        case DiagnosticLevel.Error:
-                            logger.LogError(output);
-                            success = false;
-                            break;
-                    }
-                }
-            }
-
-            return success;
-        }
-
-        private static string GetDiagnosticsOutput(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
-        {
-            var localPath = fileUri.LocalPath;
-            var position = TextCoordinateConverter.GetPosition(lineStarts, diagnostic.Span.Position);
-            var line = position.line;
-            var character = position.character;
-            var level = diagnostic.Level;
-            var code = diagnostic.Code;
-            var message = diagnostic.Message;
-
-            return $"{localPath}({line},{character}) : {level} {code}: {message}";
-        }
+        return $"{localPath}({line},{character}) : {level} {code}: {message}";
     }
 }
