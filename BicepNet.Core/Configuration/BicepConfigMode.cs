@@ -4,12 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BicepNet.Core.Configuration
+namespace BicepNet.Core.Configuration;
+
+public enum BicepConfigScope
 {
-    public enum BicepConfigScope
-    {
-        Merged,
-        Default,
-        Local
-    }
+    Merged,
+    Default,
+    Local
 }
