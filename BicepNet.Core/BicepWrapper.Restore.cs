@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace BicepNet.Core;
 
@@ -17,9 +18,11 @@ public partial class BicepWrapper
     private static int WarningCount = 0;
     private static int ErrorCount = 0;
 
-    public static void Restore(string inputFilePath)
+    public static void Restore(string inputFilePath) => joinableTaskFactory.Run(() => RestoreAsync(inputFilePath));
+
+    public static async Task RestoreAsync(string inputFilePath)
     {
-        logger.LogInformation($"Restoring external modules to local cache for file {inputFilePath}");
+        logger?.LogInformation($"Restoring external modules to local cache for file {inputFilePath}");
 
         var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
 
@@ -30,7 +33,7 @@ public partial class BicepWrapper
 
         // Restore valid references, don't log any errors
         var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration);
-        moduleDispatcher.RestoreModules(buildConfiguration, moduleReferences).GetAwaiter().GetResult();
+        await moduleDispatcher.RestoreModules(buildConfiguration, moduleReferences);
 
         foreach (var module in moduleReferences)
         {
@@ -38,11 +41,11 @@ public partial class BicepWrapper
             switch (status)
             {
                 case ModuleRestoreStatus.Failed:
-                    logger.LogError($"Failed to restore {module.FullyQualifiedReference}");
+                    logger?.LogError($"Failed to restore {module.FullyQualifiedReference}");
                     ErrorCount++;
                     break;
                 case ModuleRestoreStatus.Succeeded:
-                    logger.LogInformation($"Successfully restored {module.FullyQualifiedReference}");
+                    logger?.LogInformation($"Successfully restored {module.FullyQualifiedReference}");
                     break;
             }
         }
@@ -54,18 +57,18 @@ public partial class BicepWrapper
         
         if (ErrorCount == 0)
         {
-            if (moduleReferences.Count() > 0)
+            if (moduleReferences.Any())
             {
-                logger.LogInformation($"Successfully restored modules in {inputFilePath}");
+                logger?.LogInformation($"Successfully restored modules in {inputFilePath}");
             }
             else
             {
-                logger.LogInformation($"No new modules to restore in {inputFilePath}");
+                logger?.LogInformation($"No new modules to restore in {inputFilePath}");
             }
         }
         else
         {
-            logger.LogError($"Failed to restore {ErrorCount} out of {moduleReferences.Count()} new modules in {inputFilePath}");
+            logger?.LogError($"Failed to restore {ErrorCount} out of {moduleReferences.Count()} new modules in {inputFilePath}");
         }
     }
 
@@ -107,13 +110,13 @@ public partial class BicepWrapper
             case DiagnosticLevel.Off:
                 break;
             case DiagnosticLevel.Info:
-                logger.LogInformation(message);
+                logger?.LogInformation(message);
                 break;
             case DiagnosticLevel.Warning:
-                logger.LogWarning(message);
+                logger?.LogWarning(message);
                 break;
             case DiagnosticLevel.Error:
-                logger.LogError(message);
+                logger?.LogError(message);
                 break;
             default:
                 break;

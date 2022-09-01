@@ -14,12 +14,12 @@ namespace BicepNet.Core.Configuration;
 
 public class BicepNetConfigurationManager : IConfigurationManager
 {
-    public static string BuiltInConfigurationResourceName { get; } = $"BicepNet.Core.Configuration.bicepconfig.json";
+    public static string BuiltInConfigurationResourceName { get; } = "BicepNet.Core.Configuration.bicepconfig.json";
     
     private static readonly JsonElement BuiltInConfigurationElement = GetBuildInConfigurationElement();
 
     private static readonly Lazy<RootConfiguration> BuiltInConfigurationLazy =
-        new Lazy<RootConfiguration>(() => RootConfiguration.Bind(BuiltInConfigurationElement));
+        new(() => RootConfiguration.Bind(BuiltInConfigurationElement));
 
     private readonly IFileSystem fileSystem;
 
@@ -34,7 +34,7 @@ public class BicepNetConfigurationManager : IConfigurationManager
     {
         var configurationPath = DiscoverConfigurationFile(fileSystem.Path.GetDirectoryName(sourceFileUri.LocalPath));
 
-        if (configurationPath != null)
+        if (configurationPath is not null)
         {
             try
             {
@@ -62,6 +62,11 @@ public class BicepNetConfigurationManager : IConfigurationManager
     private static JsonElement GetBuildInConfigurationElement()
     {
         using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
+
+        if (stream is null)
+        {
+            throw new InvalidOperationException("Could not get manifest resource stream for built-in configuration.");
+        }
 
         return JsonElementFactory.CreateElement(stream);
     }
@@ -100,21 +105,23 @@ public class BicepNetConfigurationManager : IConfigurationManager
     }
 
     // Default config
-    public BicepConfigInfo GetConfigurationInfo()
+    public static BicepConfigInfo GetConfigurationInfo()
     {
         var builtInStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);
-        using (StreamReader reader = new StreamReader(builtInStream))
+        if(builtInStream is null)
         {
-            string result = reader.ReadToEnd();
-            return new BicepConfigInfo("Default", result);
+            throw new InvalidOperationException("Could not get manifest resource stream for built-in configuration.");
         }
+        using StreamReader reader = new(builtInStream);
+        string result = reader.ReadToEnd();
+        return new BicepConfigInfo("Default", result);
     }
 
     public BicepConfigInfo GetConfigurationInfo(BicepConfigScope mode, Uri sourceFileUri)
     {
         var configurationPath = DiscoverConfigurationFile(fileSystem.Path.GetDirectoryName(sourceFileUri.LocalPath));
 
-        if (configurationPath == null)
+        if (configurationPath is null)
         {
             throw new ArgumentException("No valid configuration file found!");
         }

@@ -11,6 +11,7 @@ using Bicep.Core.Workspaces;
 using BicepNet.Core.Configuration;
 using BicepNet.Core.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -25,6 +26,9 @@ public static partial class BicepWrapper
     public static string TemplateSpecsCachePath { get; private set; }
 
     // Services shared between commands
+
+    private static readonly JoinableTaskFactory joinableTaskFactory;
+    private static readonly ITokenCredentialFactory tokenCredentialFactory;
     private static readonly IApiVersionProvider apiVersionProvider;
     private static readonly RootConfiguration configuration;
     private static readonly IFileSystem fileSystem;
@@ -40,6 +44,8 @@ public static partial class BicepWrapper
 
     static BicepWrapper()
     {
+        joinableTaskFactory = new JoinableTaskFactory(new JoinableTaskContext());
+        tokenCredentialFactory = new TokenCredentialFactory();
         apiVersionProvider = new ApiVersionProvider();
         workspace = new Workspace();
         fileSystem = new FileSystem();
@@ -51,7 +57,6 @@ public static partial class BicepWrapper
 
         namespaceProvider = new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider);
 
-        var tokenCredentialFactory = new TokenCredentialFactory();
         clientFactory = new ContainerRegistryClientFactory(tokenCredentialFactory);
         moduleRegistryProvider = new DefaultModuleRegistryProvider(fileResolver,
             clientFactory,
@@ -73,7 +78,7 @@ public static partial class BicepWrapper
         switch (scope)
         {
             case BicepConfigScope.Default:
-                return configurationManager.GetConfigurationInfo();
+                return BicepNetConfigurationManager.GetConfigurationInfo();
             // Merged and Local uses the same logic
             case BicepConfigScope.Merged:
             case BicepConfigScope.Local:

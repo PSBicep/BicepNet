@@ -7,17 +7,21 @@ using Bicep.Core.Semantics;
 using Bicep.Core.Text;
 using Bicep.Core.Workspaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public static IList<string> Build(string bicepPath, bool noRestore = false)
+    public static IList<string> Build(string bicepPath, bool noRestore = false) => joinableTaskFactory.Run(() => BuildAsync(bicepPath, noRestore));
+
+    public static async Task<IList<string>> BuildAsync(string bicepPath, bool noRestore = false)
     {
         using var sw = new StringWriter();
         using var writer = new SourceAwareJsonTextWriter(sw)
@@ -35,7 +39,7 @@ public partial class BicepWrapper
         // If user did not specify NoRestore, restore modules and rebuild
         if (!noRestore)
         {
-            if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration)).GetAwaiter().GetResult())
+            if (await moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration)))
             {
                 sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, buildConfiguration);
             }

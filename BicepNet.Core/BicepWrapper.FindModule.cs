@@ -1,7 +1,7 @@
+using Azure;
 using Azure.Containers.ContainerRegistry;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Registry;
-using Bicep.Core.Registry.Auth;
 using Bicep.Core.Tracing;
 using Bicep.Core.Workspaces;
 using BicepNet.Core.Models;
@@ -29,7 +29,7 @@ public partial class BicepWrapper
         }
         else // Otherwise search a file for valid references
         {
-            logger.LogInformation($"Searching file {inputString} for endpoints");
+            logger?.LogInformation($"Searching file {inputString} for endpoints");
             var inputUri = PathHelper.FilePathToFileUrl(inputString);
 
             // Create separate configuration for the build, to account for custom rule changes
@@ -54,12 +54,12 @@ public partial class BicepWrapper
     {
         List<string> endpoints = new List<string>();
 
-        logger.LogInformation($"Searching cache {OciCachePath} for endpoints");
+        logger?.LogInformation($"Searching cache {OciCachePath} for endpoints");
         var directories = Directory.GetDirectories(OciCachePath);
         foreach (var directoryPath in directories)
         {
             var directoryName = Path.GetFileName(directoryPath);
-            logger.LogInformation($"Found endpoint {directoryName}");
+            logger?.LogInformation($"Found endpoint {directoryName}");
             endpoints.Add(directoryName);
         }
 
@@ -70,16 +70,15 @@ public partial class BicepWrapper
     {
         if (endpoints.Count > 0)
         {
-            logger.LogInformation($"Found endpoints:\n{string.Join("\n", endpoints)}");
+            logger?.LogInformation($"Found endpoints:\n{string.Join("\n", endpoints)}");
         }
         else
         {
-            logger.LogInformation("Found no endpoints in file");
+            logger?.LogInformation("Found no endpoints in file");
         }
 
         // Create credential and options
-        var tokenFactory = new TokenCredentialFactory();
-        var cred = tokenFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
+        var cred = tokenCredentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
         var options = new ContainerRegistryClientOptions();
         options.Diagnostics.ApplySharedContainerRegistrySettings();
         options.Audience = new ContainerRegistryAudience(configuration.Cloud.ResourceManagerAudience);
@@ -89,15 +88,15 @@ public partial class BicepWrapper
         {
             try
             {
-                logger.LogInformation($"Searching endpoint {endpoint}");
+                logger?.LogInformation($"Searching endpoint {endpoint}");
                 var client = new ContainerRegistryClient(new Uri($"https://{endpoint}"), cred, options);
                 var repositoryNames = client.GetRepositoryNames();
 
-                logger.LogInformation($"Found modules:\n{string.Join("\n", repositoryNames)}");
+                logger?.LogInformation($"Found modules:\n{string.Join("\n", repositoryNames)}");
 
                 foreach (var repositoryName in repositoryNames)
                 {
-                    logger.LogInformation($"Searching module {repositoryName}");
+                    logger?.LogInformation($"Searching module {repositoryName}");
 
                     // Create model repository to output
                     BicepRepository bicepRepository = new BicepRepository
@@ -114,7 +113,7 @@ public partial class BicepWrapper
                         var artifact = repository.GetArtifact(moduleVersion.Digest);
                         var tags = artifact.GetTagPropertiesCollection();
 
-                        logger.LogInformation($"Found versions of module {repositoryName}:\n{string.Join("\n", moduleVersion.Tags)}");
+                        logger?.LogInformation($"Found versions of module {repositoryName}:\n{string.Join("\n", moduleVersion.Tags)}");
                         bicepRepository.ModuleVersions.Add(new BicepRepositoryModule
                         {
                             Digest = moduleVersion.Digest,
@@ -136,32 +135,32 @@ public partial class BicepWrapper
                     repos.Add(bicepRepository);
                 }
             }
-            catch (Azure.RequestFailedException ex)
+            catch (RequestFailedException ex)
             {
                 switch (ex.Status)
                 {
                     case 401:
-                        logger.LogWarning($"The credentials provided are not authorized to the following registry: {endpoint}");
+                        logger?.LogWarning($"The credentials provided are not authorized to the following registry: {endpoint}");
                         break;
                     default:
-                        logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                        logger?.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
                         break;
                 }
             }
-            catch (System.AggregateException ex)
+            catch (AggregateException ex)
             {
                 if (ex.InnerException != null)
                 {
-                    logger.LogWarning(ex.InnerException.Message);
+                    logger?.LogWarning("{message}", ex.InnerException.Message);
                 }
                 else
                 {
-                    logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                    logger?.LogError(ex, "Could not get modules from endpoint {endpoint}!", endpoint);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                logger?.LogError(ex, "Could not get modules from endpoint {endpoint}!", endpoint);
             }
         }
         return repos;
