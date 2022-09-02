@@ -11,6 +11,15 @@ public class BicepRepositoryModuleTag
     public DateTimeOffset CreatedOn { get; set; }
     public DateTimeOffset UpdatedOn { get; set; }
 
+    public BicepRepositoryModuleTag(string name, string digest, string target, DateTimeOffset createdOn, DateTimeOffset updatedOn)
+    {
+        Name = name;
+        Digest = digest;
+        Target = target;
+        CreatedOn = createdOn;
+        UpdatedOn = updatedOn;
+    }
+
     public override string ToString()
     {
         return Name;

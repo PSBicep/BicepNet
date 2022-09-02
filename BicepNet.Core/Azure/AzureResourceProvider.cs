@@ -2,9 +2,8 @@ using Azure.Core;
 using Azure.ResourceManager;
 using Bicep.Core.Configuration;
 using Bicep.Core.Registry.Auth;
-//using Bicep.Core.Tracing;
+using Bicep.LanguageServer.Providers;
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +35,7 @@ public class AzureResourceProvider : IAzResourceProvider
         return new ArmClient(credential, subscriptionId, options);
     }
 
-    public async Task<JsonElement> GetGenericResourceAsync(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier resourceId, string? apiVersion, CancellationToken cancellationToken)
+    public async Task<JsonElement> GetGenericResource(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier resourceId, string? apiVersion, CancellationToken cancellationToken)
     {
         //var resourceTypeApiVersionMapping = new List<(string resourceType, string apiVersion)>();
         (string resourceType, string? apiVersion) resourceTypeApiVersionMapping = ("",null);

@@ -1,3 +1,4 @@
+using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
 using Bicep.Core.Features;
@@ -8,6 +9,7 @@ using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
+using Bicep.LanguageServer.Providers;
 using BicepNet.Core.Configuration;
 using BicepNet.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -21,25 +23,27 @@ namespace BicepNet.Core;
 
 public static partial class BicepWrapper
 {
-    public static string BicepVersion { get; } = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion ?? "dev";
-    public static string OciCachePath { get; private set; }
-    public static string TemplateSpecsCachePath { get; private set; }
-
+    public static readonly string BicepVersion;
+    public static readonly string OciCachePath;
+    public static readonly string TemplateSpecsCachePath;
+    
     // Services shared between commands
-
     private static readonly JoinableTaskFactory joinableTaskFactory;
     private static readonly ITokenCredentialFactory tokenCredentialFactory;
     private static readonly IApiVersionProvider apiVersionProvider;
-    private static readonly RootConfiguration configuration;
+    private static readonly IReadOnlyWorkspace workspace;
     private static readonly IFileSystem fileSystem;
-    private static readonly IModuleDispatcher moduleDispatcher;
     private static readonly IFileResolver fileResolver;
     private static readonly IFeatureProvider featureProvider;
-    private static readonly IModuleRegistryProvider moduleRegistryProvider;
-    private static readonly IReadOnlyWorkspace workspace;
-    private static readonly INamespaceProvider namespaceProvider;
     private static readonly BicepNetConfigurationManager configurationManager;
+    private static readonly RootConfiguration configuration;
+    private static readonly LinterAnalyzer linterAnalyzer;
+    private static readonly INamespaceProvider namespaceProvider;
     private static readonly IContainerRegistryClientFactory clientFactory;
+    private static readonly IModuleRegistryProvider moduleRegistryProvider;
+    private static readonly IModuleDispatcher moduleDispatcher;
+    private static readonly IAzResourceTypeLoader azResourceTypeLoader;
+    private static readonly IAzResourceProvider azResourceProvider;
     private static ILogger? logger;
 
     static BicepWrapper()
@@ -52,11 +56,9 @@ public static partial class BicepWrapper
         fileResolver = new FileResolver();
         featureProvider = new FeatureProvider();
         configurationManager = new BicepNetConfigurationManager(fileSystem);
-
         configuration = configurationManager.GetBuiltInConfiguration();
-
+        linterAnalyzer = new LinterAnalyzer(configuration);
         namespaceProvider = new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider);
-
         clientFactory = new ContainerRegistryClientFactory(tokenCredentialFactory);
         moduleRegistryProvider = new DefaultModuleRegistryProvider(fileResolver,
             clientFactory,
@@ -64,6 +66,10 @@ public static partial class BicepWrapper
             featureProvider);
         moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
 
+        azResourceTypeLoader = new AzResourceTypeLoader();
+        azResourceProvider = new AzResourceProvider(tokenCredentialFactory);
+        
+        BicepVersion = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion ?? "dev";
         OciCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.Oci);
         TemplateSpecsCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.TemplateSpecs);
     }

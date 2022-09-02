@@ -22,7 +22,7 @@ public partial class BicepWrapper
 
     public static async Task RestoreAsync(string inputFilePath)
     {
-        logger?.LogInformation($"Restoring external modules to local cache for file {inputFilePath}");
+        logger?.LogInformation("Restoring external modules to local cache for file {inputFilePath}", inputFilePath);
 
         var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
 

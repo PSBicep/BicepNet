@@ -72,13 +72,13 @@ public partial class BicepWrapper
                 switch (diagnostic.Level)
                 {
                     case DiagnosticLevel.Info:
-                        logger?.LogInformation(output);
+                        logger?.LogInformation("{output}",output);
                         break;
                     case DiagnosticLevel.Warning:
-                        logger?.LogWarning(output);
+                        logger?.LogWarning("{output}", output);
                         break;
                     case DiagnosticLevel.Error:
-                        logger?.LogError(output);
+                        logger?.LogError("{output}", output);
                         success = false;
                         break;
                 }

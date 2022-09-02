@@ -12,6 +12,15 @@ public class BicepRepositoryModule
     public DateTimeOffset CreatedOn { get; set; }
     public DateTimeOffset UpdatedOn { get; set; }
 
+    public BicepRepositoryModule(string digest, string repository, IList<BicepRepositoryModuleTag> tags, DateTimeOffset createdOn, DateTimeOffset updatedOn)
+    {
+        Digest = digest;
+        Repository = repository;
+        Tags = tags;
+        CreatedOn = createdOn;
+        UpdatedOn = updatedOn;
+    }
+
     public override string ToString()
     {
         return string.Join(", ", Tags.OrderByDescending(t => t.UpdatedOn).Select(t => t.ToString()));
