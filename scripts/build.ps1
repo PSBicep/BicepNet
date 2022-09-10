@@ -16,7 +16,6 @@ param(
 $netcoreversion = 'net6.0'
 
 $ProjectRoot = "$PSScriptRoot/.."
-$publishPath = "$ProjectRoot/out/publish"
 $outPath = "$ProjectRoot/out/BicepNet.PS"
 $commonPath = "$outPath/Bicep"
 $corePath = "$outPath/Module.NetCore"
@@ -81,6 +80,6 @@ if($Version) {
     Update-ModuleManifest -Path "$outPath/BicepNet.PS.psd1" -ModuleVersion $SemVer -Prerelease $PreReleaseTag
 }
 
-Move-Item "$outPath/BicepNet.PS/Bicep/Microsoft.Extensions.Logging.Abstractions.dll" "$outPath/BicepNet.PS/Module.NetCore/" -ErrorAction Ignore
+Move-Item "$outPath/Bicep/Microsoft.Extensions.Logging.Abstractions.dll" "$outPath/Module.NetCore/" -ErrorAction 'Ignore'
 
 Compress-Archive -Path $outPath -DestinationPath "$ProjectRoot/BicepNet.PS.zip" -Force
