@@ -29,7 +29,7 @@ public partial class BicepWrapper
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
 
         // Restore valid references, don't log any errors
-        var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration);
+        var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration);
         moduleDispatcher.RestoreModules(buildConfiguration, moduleReferences).GetAwaiter().GetResult();
 
         foreach (var module in moduleReferences)
@@ -50,7 +50,7 @@ public partial class BicepWrapper
         // update the errors based on if the restore was successful
         sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, configuration);
 
-        LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, sourceFileGrouping.ModulesToRestore));
+        LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, sourceFileGrouping.GetModulesToRestore().ToImmutableHashSet()));
         
         if (ErrorCount == 0)
         {
@@ -80,8 +80,9 @@ public partial class BicepWrapper
                     continue;
                 }
 
-                if (grouping.TryLookUpModuleErrorDiagnostic(module, out var error))
+                if (grouping.TryGetErrorDiagnostic(module) is {} errorBuilder)
                 {
+                    var error = errorBuilder(DiagnosticBuilder.ForPosition(module.Path));
                     yield return error;
                 }
             }

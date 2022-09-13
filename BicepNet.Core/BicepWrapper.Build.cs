@@ -35,13 +35,13 @@ public partial class BicepWrapper
         // If user did not specify NoRestore, restore modules and rebuild
         if (!noRestore)
         {
-            if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.ModulesToRestore, buildConfiguration)).GetAwaiter().GetResult())
+            if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration)).GetAwaiter().GetResult())
             {
                 sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, buildConfiguration);
             }
         }
 
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, new LinterAnalyzer(buildConfiguration));
+        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, apiVersionProvider, new LinterAnalyzer(buildConfiguration));
         var template = new List<string>();
 
         bool success = LogDiagnostics(compilation);

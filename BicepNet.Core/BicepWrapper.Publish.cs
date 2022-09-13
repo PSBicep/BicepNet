@@ -42,7 +42,7 @@ public partial class BicepWrapper
         }
 
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, new LinterAnalyzer(buildConfiguration));
+        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, apiVersionProvider, new LinterAnalyzer(buildConfiguration));
         var template = new List<string>();
 
         bool success = LogDiagnostics(compilation);
