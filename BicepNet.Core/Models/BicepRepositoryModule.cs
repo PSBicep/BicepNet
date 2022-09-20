@@ -6,11 +6,11 @@ namespace BicepNet.Core.Models;
 
 public class BicepRepositoryModule
 {
-    public string Digest { get; set; }
-    public string Repository { get; set; }
-    public IList<BicepRepositoryModuleTag> Tags { get; set; }
-    public DateTimeOffset CreatedOn { get; set; }
-    public DateTimeOffset UpdatedOn { get; set; }
+    public string Digest { get; }
+    public string Repository { get; }
+    public IList<BicepRepositoryModuleTag> Tags { get; }
+    public DateTimeOffset CreatedOn { get; }
+    public DateTimeOffset UpdatedOn { get; }
 
     public BicepRepositoryModule(string digest, string repository, IList<BicepRepositoryModuleTag> tags, DateTimeOffset createdOn, DateTimeOffset updatedOn)
     {

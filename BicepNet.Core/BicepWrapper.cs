@@ -9,7 +9,7 @@ using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
-using Bicep.LanguageServer.Providers;
+using BicepNet.Core.Azure;
 using BicepNet.Core.Configuration;
 using BicepNet.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -23,10 +23,10 @@ namespace BicepNet.Core;
 
 public static partial class BicepWrapper
 {
-    public static readonly string BicepVersion;
-    public static readonly string OciCachePath;
-    public static readonly string TemplateSpecsCachePath;
-    
+    public static string BicepVersion { get; }
+    public static string OciCachePath { get; }
+    public static string TemplateSpecsCachePath { get; }
+
     // Services shared between commands
     private static readonly JoinableTaskFactory joinableTaskFactory;
     private static readonly ITokenCredentialFactory tokenCredentialFactory;
@@ -43,7 +43,7 @@ public static partial class BicepWrapper
     private static readonly IModuleRegistryProvider moduleRegistryProvider;
     private static readonly IModuleDispatcher moduleDispatcher;
     private static readonly IAzResourceTypeLoader azResourceTypeLoader;
-    private static readonly IAzResourceProvider azResourceProvider;
+    private static readonly AzureResourceProvider azResourceProvider;
     private static ILogger? logger;
 
     static BicepWrapper()
@@ -67,7 +67,7 @@ public static partial class BicepWrapper
         moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
 
         azResourceTypeLoader = new AzResourceTypeLoader();
-        azResourceProvider = new AzResourceProvider(tokenCredentialFactory);
+        azResourceProvider = new AzureResourceProvider(tokenCredentialFactory);
         
         BicepVersion = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion ?? "dev";
         OciCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.Oci);
