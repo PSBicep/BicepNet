@@ -1,12 +1,14 @@
 using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
+using Bicep.Core.Diagnostics;
 using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Modules;
 using Bicep.Core.Registry;
 using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics.Namespaces;
+using Bicep.Core.Text;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
 using BicepNet.Core.Azure;
@@ -15,6 +17,7 @@ using BicepNet.Core.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
@@ -67,7 +70,7 @@ public static partial class BicepWrapper
         moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
 
         azResourceTypeLoader = new AzResourceTypeLoader();
-        azResourceProvider = new AzureResourceProvider(tokenCredentialFactory);
+        azResourceProvider = new AzureResourceProvider(tokenCredentialFactory, fileResolver, moduleDispatcher, configuration, featureProvider, namespaceProvider, apiVersionProvider, linterAnalyzer);
         
         BicepVersion = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion ?? "dev";
         OciCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.Oci);
