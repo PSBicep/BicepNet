@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- <ProjectReference Include="..\TMP\bicep\src\Bicep.Core\Bicep.Core.csproj" /> -->
     <ProjectReference Include="..\TMP\bicep\src\Bicep.LangServer\Bicep.LangServer.csproj" />
     <ProjectReference Include="..\TMP\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" />
   </ItemGroup>

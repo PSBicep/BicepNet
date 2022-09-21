@@ -49,7 +49,7 @@ public partial class BicepWrapper
         var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, apiVersionProvider, new LinterAnalyzer(buildConfiguration));
         var template = new List<string>();
 
-        bool success = LogDiagnostics(compilation);
+        bool success = LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());
         if (!success)
         {
             throw new Exception("The template was not valid, please fix the template before publishing!");

@@ -97,4 +97,57 @@ public static partial class BicepWrapper
                 throw new ArgumentException("BicepConfigMode not valid!");
         }
     }
+
+    private static bool LogDiagnostics(ImmutableDictionary<BicepFile,ImmutableArray<IDiagnostic>> diagnosticsByBicepFile)
+    {
+        bool success = true;
+        foreach (var (bicepFile, diagnostics) in diagnosticsByBicepFile)
+        {
+            foreach (var diagnostic in diagnostics)
+            {
+                success = diagnostic.Level != DiagnosticLevel.Error;
+                LogDiagnostic(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
+            }
+        }
+        return success;
+    }
+    private static string GetDiagnosticsOutput(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
+    {
+        var localPath = fileUri.LocalPath;
+        var position = TextCoordinateConverter.GetPosition(lineStarts, diagnostic.Span.Position);
+        var line = position.line;
+        var character = position.character;
+        var level = diagnostic.Level;
+        var code = diagnostic.Code;
+        var message = diagnostic.Message;
+
+        var codeDescription = diagnostic.Uri is null ? string.Empty : $" [{diagnostic.Uri.AbsoluteUri}]";
+
+        return $"{localPath}({line},{character}) : {level} {code}: {message}{codeDescription}";
+    }
+    private static void LogDiagnostic(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
+    {
+        var message = GetDiagnosticsOutput(fileUri, diagnostic, lineStarts);
+
+        switch (diagnostic.Level)
+        {
+            case DiagnosticLevel.Off:
+                break;
+            case DiagnosticLevel.Info:
+                logger?.LogInformation("{message}", message);
+                break;
+            case DiagnosticLevel.Warning:
+                logger?.LogWarning("{message}", message);
+                break;
+            case DiagnosticLevel.Error:
+                logger?.LogError("{message}", message);
+                break;
+            default:
+                break;
+        }
+
+        // Increment counters
+        if (diagnostic.Level == DiagnosticLevel.Warning) { WarningCount++; }
+        if (diagnostic.Level == DiagnosticLevel.Error) { ErrorCount++; }
+    }
 }

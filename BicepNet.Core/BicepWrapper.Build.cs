@@ -48,7 +48,7 @@ public partial class BicepWrapper
         var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, apiVersionProvider, new LinterAnalyzer(buildConfiguration));
         var template = new List<string>();
 
-        bool success = LogDiagnostics(compilation);
+        bool success = LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());
         if (success)
         {
             var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
@@ -57,47 +57,5 @@ public partial class BicepWrapper
         }
 
         return template;
-    }
-
-    private static bool LogDiagnostics(Compilation compilation)
-    {
-        bool success = true;
-
-        foreach (var (bicepFile, diagnostics) in compilation.GetAllDiagnosticsByBicepFile())
-        {
-            foreach (var diagnostic in diagnostics)
-            {
-                string output = GetDiagnosticsOutput(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
-
-                switch (diagnostic.Level)
-                {
-                    case DiagnosticLevel.Info:
-                        logger?.LogInformation("{output}",output);
-                        break;
-                    case DiagnosticLevel.Warning:
-                        logger?.LogWarning("{output}", output);
-                        break;
-                    case DiagnosticLevel.Error:
-                        logger?.LogError("{output}", output);
-                        success = false;
-                        break;
-                }
-            }
-        }
-
-        return success;
-    }
-
-    private static string GetDiagnosticsOutput(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
-    {
-        var localPath = fileUri.LocalPath;
-        var position = TextCoordinateConverter.GetPosition(lineStarts, diagnostic.Span.Position);
-        var line = position.line;
-        var character = position.character;
-        var level = diagnostic.Level;
-        var code = diagnostic.Code;
-        var message = diagnostic.Message;
-
-        return $"{localPath}({line},{character}) : {level} {code}: {message}";
     }
 }
