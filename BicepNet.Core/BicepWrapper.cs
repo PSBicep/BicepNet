@@ -1,3 +1,4 @@
+using Azure.Core;
 using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
@@ -11,6 +12,7 @@ using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.Text;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
+using BicepNet.Core.Authentication;
 using BicepNet.Core.Azure;
 using BicepNet.Core.Configuration;
 using BicepNet.Core.Models;
@@ -49,10 +51,12 @@ public static partial class BicepWrapper
     private static readonly AzureResourceProvider azResourceProvider;
     private static ILogger? logger;
 
+    internal static TokenCredential? ExternalCredential;
+
     static BicepWrapper()
     {
         joinableTaskFactory = new JoinableTaskFactory(new JoinableTaskContext());
-        tokenCredentialFactory = new TokenCredentialFactory();
+        tokenCredentialFactory = new BicepNetTokenCredentialFactory();
         apiVersionProvider = new ApiVersionProvider();
         workspace = new Workspace();
         fileSystem = new FileSystem();
@@ -80,6 +84,18 @@ public static partial class BicepWrapper
     public static void Initialize(ILogger bicepLogger)
     {
         logger = bicepLogger;
+
+        // Reset credential between commands
+        ExternalCredential = null;
+    }
+
+    public static void SetAccessToken(string token)
+    {
+        if (!string.IsNullOrEmpty(token))
+        {
+            logger?.LogInformation("Token provided as authentication...");
+            ExternalCredential = new ExternalTokenCredential(token, DateTimeOffset.Now.AddDays(1));
+        }
     }
 
     public static BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path)
