@@ -10,12 +10,16 @@ using Bicep.Core.Workspaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public static void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true)
+    public static void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true) => 
+        joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference, noRestore));
+
+    public static async Task PublishAsync(string inputFilePath, string targetModuleReference, bool noRestore = true)
     {
         var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
 
@@ -45,7 +49,7 @@ public partial class BicepWrapper
         var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, apiVersionProvider, new LinterAnalyzer(buildConfiguration));
         var template = new List<string>();
 
-        bool success = LogDiagnostics(compilation);
+        bool success = LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());
         if (!success)
         {
             throw new Exception("The template was not valid, please fix the template before publishing!");
@@ -55,6 +59,6 @@ public partial class BicepWrapper
         new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider)).Emit(stream);
 
         stream.Position = 0;
-        moduleDispatcher.PublishModule(compilation.Configuration, moduleReference, stream);
+        await moduleDispatcher.PublishModule(compilation.Configuration, moduleReference, stream);
     }
 }

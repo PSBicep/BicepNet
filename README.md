@@ -6,7 +6,7 @@ This is the repository for **BicepNet**, a thin wrapper around [Bicep](https://g
 
 | BicepNet version | Bicep assembly version |
 | --- | --- |
-| `2.0.9` | `0.10.13` |
+| `2.0.9` | `0.10.61` |
 | `2.0.8` | `0.9.1` |
 | `2.0.7` | `0.8.9` |
 | `2.0.6` | `0.7.4` |

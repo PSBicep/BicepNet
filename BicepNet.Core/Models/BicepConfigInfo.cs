@@ -2,8 +2,8 @@
 
 public class BicepConfigInfo
 {
-    public string Path { get; set; }
-    public string Config { get; set; }
+    public string Path { get; }
+    public string Config { get; }
 
     public BicepConfigInfo(string path, string config)
     {

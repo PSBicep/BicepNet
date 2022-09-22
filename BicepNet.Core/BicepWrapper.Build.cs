@@ -7,17 +7,21 @@ using Bicep.Core.Semantics;
 using Bicep.Core.Text;
 using Bicep.Core.Workspaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Threading;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public static IList<string> Build(string bicepPath, bool noRestore = false)
+    public static IList<string> Build(string bicepPath, bool noRestore = false) => joinableTaskFactory.Run(() => BuildAsync(bicepPath, noRestore));
+
+    public static async Task<IList<string>> BuildAsync(string bicepPath, bool noRestore = false)
     {
         using var sw = new StringWriter();
         using var writer = new SourceAwareJsonTextWriter(sw)
@@ -35,7 +39,7 @@ public partial class BicepWrapper
         // If user did not specify NoRestore, restore modules and rebuild
         if (!noRestore)
         {
-            if (moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration)).GetAwaiter().GetResult())
+            if (await moduleDispatcher.RestoreModules(buildConfiguration, moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore(), buildConfiguration)))
             {
                 sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping, buildConfiguration);
             }
@@ -44,7 +48,7 @@ public partial class BicepWrapper
         var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, apiVersionProvider, new LinterAnalyzer(buildConfiguration));
         var template = new List<string>();
 
-        bool success = LogDiagnostics(compilation);
+        bool success = LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());
         if (success)
         {
             var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
@@ -53,47 +57,5 @@ public partial class BicepWrapper
         }
 
         return template;
-    }
-
-    private static bool LogDiagnostics(Compilation compilation)
-    {
-        bool success = true;
-
-        foreach (var (bicepFile, diagnostics) in compilation.GetAllDiagnosticsByBicepFile())
-        {
-            foreach (var diagnostic in diagnostics)
-            {
-                string output = GetDiagnosticsOutput(bicepFile.FileUri, diagnostic, bicepFile.LineStarts);
-
-                switch (diagnostic.Level)
-                {
-                    case DiagnosticLevel.Info:
-                        logger?.LogInformation(output);
-                        break;
-                    case DiagnosticLevel.Warning:
-                        logger?.LogWarning(output);
-                        break;
-                    case DiagnosticLevel.Error:
-                        logger?.LogError(output);
-                        success = false;
-                        break;
-                }
-            }
-        }
-
-        return success;
-    }
-
-    private static string GetDiagnosticsOutput(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
-    {
-        var localPath = fileUri.LocalPath;
-        var position = TextCoordinateConverter.GetPosition(lineStarts, diagnostic.Span.Position);
-        var line = position.line;
-        var character = position.character;
-        var level = diagnostic.Level;
-        var code = diagnostic.Code;
-        var message = diagnostic.Message;
-
-        return $"{localPath}({line},{character}) : {level} {code}: {message}";
     }
 }

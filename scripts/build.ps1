@@ -7,7 +7,10 @@ param(
     $Version,
 
     [Switch]
-    $Full
+    $Full,
+
+    [switch]
+    $ClearNugetCache
 )
 
 $netcoreversion = 'net6.0'
@@ -27,6 +30,9 @@ New-Item -Path $corePath -ItemType Directory
 $Path = "$ProjectRoot/BicepNet.Core"
 Push-Location -Path $Path
 Write-Host $Path -ForegroundColor 'Magenta'
+if($ClearNugetCache) {
+    dotnet nuget locals all --clear
+}
 if ($Full) {
     dotnet build-server shutdown
     dotnet clean
@@ -73,5 +79,7 @@ if($Version) {
     $SemVer, $PreReleaseTag = $Version.Split('-')
     Update-ModuleManifest -Path "$outPath/BicepNet.PS.psd1" -ModuleVersion $SemVer -Prerelease $PreReleaseTag
 }
+
+Move-Item "$outPath/Bicep/Microsoft.Extensions.Logging.Abstractions.dll" "$outPath/Module.NetCore/" -ErrorAction 'Ignore'
 
 Compress-Archive -Path $outPath -DestinationPath "$ProjectRoot/BicepNet.PS.zip" -Force

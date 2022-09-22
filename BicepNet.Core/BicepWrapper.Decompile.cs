@@ -19,9 +19,9 @@ public partial class BicepWrapper
 
         var template = new Dictionary<string,string>();
         var templateDecompiler = new TemplateDecompiler(featureProvider, namespaceProvider, fileResolver, moduleRegistryProvider, configurationManager);
-        var decompilation = templateDecompiler.DecompileFileWithModules(inputUri, outputUri);
+        var (entrypointUri, filesToSave) = templateDecompiler.DecompileFileWithModules(inputUri, outputUri);
 
-        foreach (var (fileUri, bicepOutput) in decompilation.filesToSave)
+        foreach (var (fileUri, bicepOutput) in filesToSave)
         {
             template.Add(fileUri.LocalPath,bicepOutput);
         }

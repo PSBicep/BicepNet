@@ -1,7 +1,7 @@
+using Azure;
 using Azure.Containers.ContainerRegistry;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Registry;
-using Bicep.Core.Registry.Auth;
 using Bicep.Core.Tracing;
 using Bicep.Core.Workspaces;
 using BicepNet.Core.Models;
@@ -20,7 +20,7 @@ public partial class BicepWrapper
     /// </summary>
     public static IList<BicepRepository> FindModules(string inputString, bool isRegistryEndpoint)
     {
-        List<string> endpoints = new List<string>();
+        List<string> endpoints = new();
 
         // If a registry is specified, only add that
         if (isRegistryEndpoint)
@@ -29,7 +29,7 @@ public partial class BicepWrapper
         }
         else // Otherwise search a file for valid references
         {
-            logger.LogInformation($"Searching file {inputString} for endpoints");
+            logger?.LogInformation("Searching file {inputString} for endpoints", inputString);
             var inputUri = PathHelper.FilePathToFileUrl(inputString);
 
             // Create separate configuration for the build, to account for custom rule changes
@@ -41,7 +41,7 @@ public partial class BicepWrapper
             var fullReferences = moduleReferences.Select(m => m.FullyQualifiedReference);
             // Create objects with all module references grouped by endpoint
             // Format endpoint from "br:example.azurecr.io/repository/template:tag" to "example.azurecr.io"
-            endpoints.AddRange(fullReferences.Select(r => r.Substring(3).Split('/').First()).Distinct());
+            endpoints.AddRange(fullReferences.Select(r => r[3..].Split('/').First()).Distinct());
         }
 
         return FindModulesByEndpoints(endpoints);
@@ -52,14 +52,14 @@ public partial class BicepWrapper
     /// </summary>
     public static IList<BicepRepository> FindModules()
     {
-        List<string> endpoints = new List<string>();
+        List<string> endpoints = new();
 
-        logger.LogInformation($"Searching cache {OciCachePath} for endpoints");
+        logger?.LogInformation("Searching cache {OciCachePath} for endpoints", OciCachePath);
         var directories = Directory.GetDirectories(OciCachePath);
         foreach (var directoryPath in directories)
         {
             var directoryName = Path.GetFileName(directoryPath);
-            logger.LogInformation($"Found endpoint {directoryName}");
+            logger?.LogInformation("Found endpoint {directoryName}", directoryName);
             endpoints.Add(directoryName);
         }
 
@@ -70,16 +70,15 @@ public partial class BicepWrapper
     {
         if (endpoints.Count > 0)
         {
-            logger.LogInformation($"Found endpoints:\n{string.Join("\n", endpoints)}");
+            logger?.LogInformation("Found endpoints:\n{joinedEndpoints}", string.Join("\n", endpoints));
         }
         else
         {
-            logger.LogInformation("Found no endpoints in file");
+            logger?.LogInformation("Found no endpoints in file");
         }
 
         // Create credential and options
-        var tokenFactory = new TokenCredentialFactory();
-        var cred = tokenFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
+        var cred = tokenCredentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
         var options = new ContainerRegistryClientOptions();
         options.Diagnostics.ApplySharedContainerRegistrySettings();
         options.Audience = new ContainerRegistryAudience(configuration.Cloud.ResourceManagerAudience);
@@ -89,22 +88,18 @@ public partial class BicepWrapper
         {
             try
             {
-                logger.LogInformation($"Searching endpoint {endpoint}");
+                logger?.LogInformation("Searching endpoint {endpoint}", endpoint);
                 var client = new ContainerRegistryClient(new Uri($"https://{endpoint}"), cred, options);
                 var repositoryNames = client.GetRepositoryNames();
 
-                logger.LogInformation($"Found modules:\n{string.Join("\n", repositoryNames)}");
+                logger?.LogInformation("Found modules:\n{joinedRepositoryNames}", string.Join("\n", repositoryNames));
 
                 foreach (var repositoryName in repositoryNames)
                 {
-                    logger.LogInformation($"Searching module {repositoryName}");
+                    logger?.LogInformation("Searching module {repositoryName}", repositoryName);
 
                     // Create model repository to output
-                    BicepRepository bicepRepository = new BicepRepository
-                    {
-                        Endpoint = endpoint,
-                        Name = repositoryName
-                    };
+                    BicepRepository bicepRepository = new(endpoint, repositoryName);
 
                     var repository = client.GetRepository(repositoryName);
                     var repositoryManifests = repository.GetAllManifestProperties();
@@ -114,54 +109,52 @@ public partial class BicepWrapper
                         var artifact = repository.GetArtifact(moduleVersion.Digest);
                         var tags = artifact.GetTagPropertiesCollection();
 
-                        logger.LogInformation($"Found versions of module {repositoryName}:\n{string.Join("\n", moduleVersion.Tags)}");
-                        bicepRepository.ModuleVersions.Add(new BicepRepositoryModule
-                        {
-                            Digest = moduleVersion.Digest,
-                            Repository = repositoryName,
-                            Tags = tags.Select(t => new BicepRepositoryModuleTag
-                            {
-                                Name = t.Name,
-                                Digest = t.Digest,
-                                UpdatedOn = t.LastUpdatedOn,
-                                CreatedOn = t.CreatedOn,
-                                Target = $"br:{endpoint}/{repositoryName}:{t.Name}"
-                            }).ToList(),
-                            CreatedOn = moduleVersion.CreatedOn,
-                            UpdatedOn = moduleVersion.LastUpdatedOn
-                        });
+                        logger?.LogInformation("Found versions of module {repositoryName}:\n{tags}", repositoryName, string.Join("\n", moduleVersion.Tags));
+                        bicepRepository.ModuleVersions.Add(new BicepRepositoryModule(
+                            digest: moduleVersion.Digest,
+                            repository: repositoryName,
+                            tags: tags.Select(t => new BicepRepositoryModuleTag(
+                                name: t.Name,
+                                digest: t.Digest,
+                                updatedOn: t.LastUpdatedOn,
+                                createdOn: t.CreatedOn,
+                                target: $"br:{endpoint}/{repositoryName}:{t.Name}"
+                            )).ToList(),
+                            createdOn: moduleVersion.CreatedOn,
+                            updatedOn: moduleVersion.LastUpdatedOn
+                        ));
                     }
                     bicepRepository.ModuleVersions = bicepRepository.ModuleVersions.OrderByDescending(t => t.UpdatedOn).ToList();
 
                     repos.Add(bicepRepository);
                 }
             }
-            catch (Azure.RequestFailedException ex)
+            catch (RequestFailedException ex)
             {
                 switch (ex.Status)
                 {
                     case 401:
-                        logger.LogWarning($"The credentials provided are not authorized to the following registry: {endpoint}");
+                        logger?.LogWarning("The credentials provided are not authorized to the following registry: {endpoint}", endpoint);
                         break;
                     default:
-                        logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                        logger?.LogError(ex, "Could not get modules from endpoint {endpoint}!", endpoint);
                         break;
                 }
             }
-            catch (System.AggregateException ex)
+            catch (AggregateException ex)
             {
                 if (ex.InnerException != null)
                 {
-                    logger.LogWarning(ex.InnerException.Message);
+                    logger?.LogWarning("{message}", ex.InnerException.Message);
                 }
                 else
                 {
-                    logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                    logger?.LogError(ex, "Could not get modules from endpoint {endpoint}!", endpoint);
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Could not get modules from endpoint {endpoint}!");
+                logger?.LogError(ex, "Could not get modules from endpoint {endpoint}!", endpoint);
             }
         }
         return repos;
