@@ -39,8 +39,10 @@
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
     CmdletsToExport      = @(
         'Build-BicepNetFile'
+        'Convert-BicepNetResourceToBicep'
         'ConvertTo-BicepNetFile'
         'Export-BicepNetResource'
+        'Export-BicepNetChildResource'
         'Find-BicepNetModule'
         'Get-BicepNetCachePath'
         'Get-BicepNetConfig'

@@ -1,10 +1,13 @@
+using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Resources;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace BicepNet.Core.Azure;
 
@@ -29,28 +32,26 @@ internal static class ManagementGroupHelper
 
         var collection = mg.GetManagementGroupPolicyDefinitions();
         var list = collection.GetAllAsync(filter: "atExactScope()", cancellationToken: cancellationToken);
+        
         JsonElement element;
+
+        var taskList = new Dictionary<string, Task<Response<ManagementGroupPolicyDefinitionResource>>>();
         await foreach (var item in list)
         {
-            var id = item.Id.ToString();
+            taskList.Add(item.Id.ToString(), item.GetAsync(cancellationToken: cancellationToken));
+        }
+
+        foreach (var id in taskList.Keys)
+        {
+            var policyItemResponse = await taskList[id];
             var resourceId = AzureHelpers.ValidateResourceId(id);
-            resourceId.Deconstruct(
-                out string fullyQualifiedId,
-                out string fullyQualifiedType,
-                out string fullyQualifiedName,
-                out string unqualifiedName,
-                out string subscriptionId
-            );
-            var resource = await item.GetAsync(cancellationToken: cancellationToken);
-            if (resource is null ||
-                resource.GetRawResponse().ContentStream is not { } contentStream)
+            if (policyItemResponse is null ||
+                policyItemResponse.GetRawResponse().ContentStream is not { } contentStream)
             {
                 throw new Exception($"Failed to fetch resource from Id '{resourceId.FullyQualifiedId}'");
             }
-
             contentStream.Position = 0;
             element = await JsonSerializer.DeserializeAsync<JsonElement>(contentStream, cancellationToken: cancellationToken);
-            //element = JsonSerializer.Deserialize<JsonElement>(JsonSerializer.Serialize(item.Data));
             result.Add(id, element);
         }
         return result;
