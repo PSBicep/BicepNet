@@ -1,0 +1,15 @@
+---
+name: Dependabot hack
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - never-trigger-this-dependabot-hack-workflow
+
+jobs:
+
+  dependabot_hack:
+    name: Ensure dependabot version checks
+    runs-on: ubuntu-20.04
+    steps:    
+      # Dockerfile:
+      - uses: azure/bicep@v0.10.61
