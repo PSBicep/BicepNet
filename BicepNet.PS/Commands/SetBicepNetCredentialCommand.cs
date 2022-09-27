@@ -8,11 +8,11 @@ namespace BicepNet.PS.Commands
     [CmdletBinding(DefaultParameterSetName = "Interactive")]
     public class SetBicepNetCredentialCommand : BicepNetBaseCommand
     {
-        [Parameter(ValueFromPipeline = true, ParameterSetName = "Token")]
+        [Parameter(Mandatory = true, ParameterSetName = "Token")]
         [ValidateNotNullOrEmpty]
         public string AccessToken { get; set; }
 
-        [Parameter(ValueFromPipeline = true, ParameterSetName = "Interactive")]
+        [Parameter(ParameterSetName = "Interactive", Position = 0)]
         [ValidateNotNullOrEmpty]
         public string TenantId { get; set; }
 
