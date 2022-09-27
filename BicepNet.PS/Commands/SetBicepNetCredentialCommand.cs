@@ -12,7 +12,7 @@ namespace BicepNet.PS.Commands
         [ValidateNotNullOrEmpty]
         public string AccessToken { get; set; }
 
-        [Parameter(ParameterSetName = "Interactive", Position = 0)]
+        [Parameter(ParameterSetName = "Interactive")]
         [ValidateNotNullOrEmpty]
         public string TenantId { get; set; }
 
