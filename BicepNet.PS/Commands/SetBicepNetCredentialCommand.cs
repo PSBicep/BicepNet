@@ -1,27 +1,34 @@
 using BicepNet.Core;
+using System;
 using System.Management.Automation;
 
 namespace BicepNet.PS.Commands
 {
     [Cmdlet(VerbsCommon.Set, "BicepNetCredential")]
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = "Interactive")]
     public class SetBicepNetCredentialCommand : BicepNetBaseCommand
     {
-        [Parameter(ValueFromPipeline = true)]
+        [Parameter(ValueFromPipeline = true, ParameterSetName = "Token")]
         [ValidateNotNullOrEmpty]
         public string AccessToken { get; set; }
+
+        [Parameter(ValueFromPipeline = true, ParameterSetName = "Interactive")]
+        [ValidateNotNullOrEmpty]
+        public string TenantId { get; set; }
 
         protected override void BeginProcessing()
         {
             base.BeginProcessing();
-            if (MyInvocation.BoundParameters.ContainsKey("AccessToken"))
+            switch (ParameterSetName)
             {
-                BicepWrapper.SetAuthentication(AccessToken);
-            }
-            else
-            {
-                // Interactive login
-                BicepWrapper.SetAuthentication();
+                case "Token":
+                    BicepWrapper.SetAuthentication(AccessToken);
+                    break;
+                case "Interactive":
+                    BicepWrapper.SetAuthentication(null, TenantId);
+                    break;
+                default:
+                    throw new Exception("Not a valid parameter set!");
             }
         }
     }

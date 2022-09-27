@@ -1,4 +1,5 @@
 using Azure.Core;
+using Azure.Identity;
 using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
@@ -21,8 +22,10 @@ using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 
 namespace BicepNet.Core;
 
@@ -34,7 +37,7 @@ public static partial class BicepWrapper
 
     // Services shared between commands
     private static readonly JoinableTaskFactory joinableTaskFactory;
-    private static readonly ITokenCredentialFactory tokenCredentialFactory;
+    private static readonly BicepNetTokenCredentialFactory tokenCredentialFactory;
     private static readonly IApiVersionProvider apiVersionProvider;
     private static readonly IReadOnlyWorkspace workspace;
     private static readonly IFileSystem fileSystem;
@@ -50,9 +53,6 @@ public static partial class BicepWrapper
     private static readonly IAzResourceTypeLoader azResourceTypeLoader;
     private static readonly AzureResourceProvider azResourceProvider;
     private static ILogger? logger;
-
-    internal static TokenCredential? ExternalCredential;
-    internal static bool InteractiveAuthentication;
 
     static BicepWrapper()
     {
@@ -88,31 +88,54 @@ public static partial class BicepWrapper
         logger = bicepLogger;
     }
 
-    public static void SetAuthentication(string? token = null)
+    public static void SetAuthentication(string? token = null, string? tenantId = null)
     {
+        // User provided a token
         if (!string.IsNullOrEmpty(token))
         {
-            InteractiveAuthentication = false;
+            tokenCredentialFactory.InteractiveAuthentication = false;
             logger?.LogInformation("Token provided as authentication...");
-            ExternalCredential = new ExternalTokenCredential(token, DateTimeOffset.Now.AddDays(1));
+
+            // Try to parse JWT for expiry date
+            try
+            {
+                var handler = new JwtSecurityTokenHandler();
+                var jwtSecurityToken = handler.ReadJwtToken(token);
+                var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
+                var expDateTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(tokenExp));
+
+                tokenCredentialFactory.Credential = new ExternalTokenCredential(token, expDateTime);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Could not parse token as JWT, please ensure it is provided in the correct format!", ex);
+            }
         }
-        else
+        else // User did not provide a token - interactive auth
         {
-            InteractiveAuthentication = true;
-            ExternalCredential = null;
+            // Since we cannot change the method signatures of the ITokenCredentialFactory, set properties and check them within the class
+            tokenCredentialFactory.InteractiveAuthentication = true;
+            tokenCredentialFactory.Credential = new InteractiveBrowserCredential(options: new() { AuthorityHost = configuration.Cloud.ActiveDirectoryAuthorityUri });
+            tokenCredentialFactory.TokenRequestContext = new TokenRequestContext(new[] { BicepNetTokenCredentialFactory.Scope }, tenantId: tenantId);
+
+            // Get token immediately to not delay the login until a command is executed
+            // The token is then stored within the SDK, in the credential object
+            tokenCredentialFactory.GetToken();
+            
+            tokenCredentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
         }
     }
 
     public static void ClearAuthentication()
     {
-        ((BicepNetTokenCredentialFactory)tokenCredentialFactory).Credential = null;
-        InteractiveAuthentication = false;
-        ExternalCredential = null;
+        tokenCredentialFactory.InteractiveAuthentication = false;
+        tokenCredentialFactory.Credential = null;
     }
 
-    public static Authentication.BicepAccessToken? GetAccessToken()
+    public static BicepAccessToken? GetAccessToken()
     {
-        var token = ((BicepNetTokenCredentialFactory)tokenCredentialFactory).Credential?.GetToken(new TokenRequestContext(), System.Threading.CancellationToken.None);
+        // Gets the token using the same request context as when connecting
+        var token = tokenCredentialFactory.Credential?.GetToken(tokenCredentialFactory.TokenRequestContext, System.Threading.CancellationToken.None);
 
         if (!token.HasValue)
         {
@@ -120,7 +143,7 @@ public static partial class BicepWrapper
         }
 
         var tokenValue = token.Value;
-        return new Authentication.BicepAccessToken(tokenValue.Token, tokenValue.ExpiresOn);
+        return new BicepAccessToken(tokenValue.Token, tokenValue.ExpiresOn);
     }
 
     public static BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path)

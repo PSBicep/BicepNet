@@ -10,32 +10,27 @@ namespace BicepNet.Core.Authentication
 {
     public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
     {
-        public static string Scope { get; } = "https://management.azure.com/.default";
+        public static string Scope { get; } = "https://management.core.windows.net/.default";
+        
+        internal TokenRequestContext TokenRequestContext { get; set; }
         internal TokenCredential? Credential { get; set; }
-        internal Uri? AuthorityUri { get; private set; }
+        internal bool InteractiveAuthentication { get; set; }
 
         public TokenCredential CreateChain(IEnumerable<CredentialType> credentialPrecedence, Uri authorityUri)
         {
-            AuthorityUri = authorityUri;
-
-            List<TokenCredential> tokenCredentials = new();
-
-            if (BicepWrapper.ExternalCredential != null)
+            // Return the credential if already authenticated in BicepNet
+            if (Credential != null)
             {
-                Credential = BicepWrapper.ExternalCredential;
-                return Credential;
-            }
-            else if (BicepWrapper.InteractiveAuthentication)
-            {
-                Credential = new InteractiveBrowserCredential(options: new () { AuthorityHost = authorityUri });
                 return Credential;
             }
 
+            // If not authenticated, ensure BicepConfig has a precedence
             if (!credentialPrecedence.Any())
             {
                 throw new ArgumentException($"At least one credential type must be provided.");
             }
 
+            // Authenticate using BicepConfig precedence
             return new ChainedTokenCredential(credentialPrecedence.Select(credentialType => CreateSingle(credentialType, authorityUri)).ToArray());
         }
 
@@ -59,6 +54,11 @@ namespace BicepNet.Core.Authentication
                 default:
                     throw new NotImplementedException($"Unexpected credential type '{credentialType}'.");
             }
+        }
+
+        public AccessToken? GetToken()
+        {
+            return Credential?.GetToken(TokenRequestContext, System.Threading.CancellationToken.None);
         }
     }
 }
