@@ -1,6 +1,4 @@
 using BicepNet.Core;
-using BicepNet.Core.Configuration;
-using System;
 using System.Management.Automation;
 
 namespace BicepNet.PS.Commands
@@ -16,7 +14,15 @@ namespace BicepNet.PS.Commands
         protected override void BeginProcessing()
         {
             base.BeginProcessing();
-            BicepWrapper.SetAccessToken(AccessToken);
+            if (MyInvocation.BoundParameters.ContainsKey("AccessToken"))
+            {
+                BicepWrapper.SetAuthentication(AccessToken);
+            }
+            else
+            {
+                // Interactive login
+                BicepWrapper.SetAuthentication();
+            }
         }
     }
 }

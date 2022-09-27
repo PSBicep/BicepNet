@@ -52,10 +52,12 @@ public static partial class BicepWrapper
     private static ILogger? logger;
 
     internal static TokenCredential? ExternalCredential;
+    internal static bool InteractiveAuthentication;
 
     static BicepWrapper()
     {
         joinableTaskFactory = new JoinableTaskFactory(new JoinableTaskContext());
+        // Create a custom TokenCredentialFactory to allow for token input
         tokenCredentialFactory = new BicepNetTokenCredentialFactory();
         apiVersionProvider = new ApiVersionProvider();
         workspace = new Workspace();
@@ -84,18 +86,41 @@ public static partial class BicepWrapper
     public static void Initialize(ILogger bicepLogger)
     {
         logger = bicepLogger;
-
-        // Reset credential between commands
-        ExternalCredential = null;
     }
 
-    public static void SetAccessToken(string token)
+    public static void SetAuthentication(string? token = null)
     {
         if (!string.IsNullOrEmpty(token))
         {
+            InteractiveAuthentication = false;
             logger?.LogInformation("Token provided as authentication...");
             ExternalCredential = new ExternalTokenCredential(token, DateTimeOffset.Now.AddDays(1));
         }
+        else
+        {
+            InteractiveAuthentication = true;
+            ExternalCredential = null;
+        }
+    }
+
+    public static void ClearAuthentication()
+    {
+        ((BicepNetTokenCredentialFactory)tokenCredentialFactory).Credential = null;
+        InteractiveAuthentication = false;
+        ExternalCredential = null;
+    }
+
+    public static Authentication.BicepAccessToken? GetAccessToken()
+    {
+        var token = ((BicepNetTokenCredentialFactory)tokenCredentialFactory).Credential?.GetToken(new TokenRequestContext(), System.Threading.CancellationToken.None);
+
+        if (!token.HasValue)
+        {
+            return null;
+        }
+
+        var tokenValue = token.Value;
+        return new Authentication.BicepAccessToken(tokenValue.Token, tokenValue.ExpiresOn);
     }
 
     public static BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path)
