@@ -104,26 +104,45 @@ public partial class BicepWrapper
                     var repository = client.GetRepository(repositoryName);
                     var repositoryManifests = repository.GetAllManifestProperties();
 
-                    foreach (var moduleVersion in repositoryManifests)
-                    {
-                        var artifact = repository.GetArtifact(moduleVersion.Digest);
-                        var tags = artifact.GetTagPropertiesCollection();
+                    var manifestCount = repositoryManifests.Count();
+                    logger?.LogInformation("{manifestCount} manifest(s) found.", manifestCount);
 
-                        logger?.LogInformation("Found versions of module {repositoryName}:\n{tags}", repositoryName, string.Join("\n", moduleVersion.Tags));
-                        bicepRepository.ModuleVersions.Add(new BicepRepositoryModule(
-                            digest: moduleVersion.Digest,
+                    foreach (var moduleManifest in repositoryManifests)
+                    {
+                        var artifact = repository.GetArtifact(moduleManifest.Digest);
+                        var tags = artifact.GetTagPropertiesCollection();
+                        
+                        List<BicepRepositoryModuleTag> tagList = new ();
+                        // All artifacts don't have tags, but the tags variable will not be null because of the pageable
+                        // This means we can't compare null,
+                        try
+                        {
+                            foreach (var tag in tags)
+                            {
+                                logger?.LogInformation("Found tag \"{tag.Name}\"", tag.Name);
+                                tagList.Add(new BicepRepositoryModuleTag(
+                                    name: tag.Name,
+                                    digest: tag.Digest,
+                                    updatedOn: tag.LastUpdatedOn,
+                                    createdOn: tag.CreatedOn,
+                                    target: $"br:{endpoint}/{repositoryName}:{tag.Name}"
+                                ));
+                            }
+                        } // When there are no tags, we cannot enumerate null - disregard this error and continue
+                        catch (InvalidOperationException ex) when (ex.TargetSite?.Name == "EnumerateArray") {
+                            logger?.LogInformation("No tags found for manifest with digest {moduleManifest.Digest}", moduleManifest.Digest);
+                        }
+
+                        var bicepModule = new BicepRepositoryModule(
+                            digest: moduleManifest.Digest,
                             repository: repositoryName,
-                            tags: tags.Select(t => new BicepRepositoryModuleTag(
-                                name: t.Name,
-                                digest: t.Digest,
-                                updatedOn: t.LastUpdatedOn,
-                                createdOn: t.CreatedOn,
-                                target: $"br:{endpoint}/{repositoryName}:{t.Name}"
-                            )).ToList(),
-                            createdOn: moduleVersion.CreatedOn,
-                            updatedOn: moduleVersion.LastUpdatedOn
-                        ));
+                            tags: tagList,
+                            createdOn: moduleManifest.CreatedOn,
+                            updatedOn: moduleManifest.LastUpdatedOn
+                        );
+                        bicepRepository.ModuleVersions.Add(bicepModule);
                     }
+
                     bicepRepository.ModuleVersions = bicepRepository.ModuleVersions.OrderByDescending(t => t.UpdatedOn).ToList();
 
                     repos.Add(bicepRepository);
