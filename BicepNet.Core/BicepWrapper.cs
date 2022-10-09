@@ -1,3 +1,4 @@
+using Bicep.Core.Analyzers.Interfaces;
 using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
@@ -7,6 +8,7 @@ using Bicep.Core.FileSystem;
 using Bicep.Core.Modules;
 using Bicep.Core.Registry;
 using Bicep.Core.Registry.Auth;
+using Bicep.Core.Semantics;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.Text;
 using Bicep.Core.TypeSystem.Az;
@@ -30,47 +32,50 @@ public static partial class BicepWrapper
     public static string OciCachePath { get; }
     public static string TemplateSpecsCachePath { get; }
 
+    private static int WarningCount = 0;
+    private static int ErrorCount = 0;
+
     // Services shared between commands
     private static readonly JoinableTaskFactory joinableTaskFactory;
+    private static readonly IFeatureProvider featureProvider;
+    private static readonly IAzResourceTypeLoader azResourceTypeLoader;
+    private static readonly INamespaceProvider namespaceProvider;
     private static readonly ITokenCredentialFactory tokenCredentialFactory;
     private static readonly IApiVersionProvider apiVersionProvider;
     private static readonly IReadOnlyWorkspace workspace;
     private static readonly IFileSystem fileSystem;
     private static readonly IFileResolver fileResolver;
-    private static readonly IFeatureProvider featureProvider;
     private static readonly BicepNetConfigurationManager configurationManager;
     private static readonly RootConfiguration configuration;
-    private static readonly LinterAnalyzer linterAnalyzer;
-    private static readonly INamespaceProvider namespaceProvider;
+    private static readonly IBicepAnalyzer bicepAnalyzer;
     private static readonly IContainerRegistryClientFactory clientFactory;
     private static readonly IModuleRegistryProvider moduleRegistryProvider;
     private static readonly IModuleDispatcher moduleDispatcher;
-    private static readonly IAzResourceTypeLoader azResourceTypeLoader;
     private static readonly AzureResourceProvider azResourceProvider;
     private static ILogger? logger;
 
     static BicepWrapper()
     {
         joinableTaskFactory = new JoinableTaskFactory(new JoinableTaskContext());
+        featureProvider = new FeatureProvider();
+        azResourceTypeLoader = new AzResourceTypeLoader();
+        namespaceProvider = new DefaultNamespaceProvider(azResourceTypeLoader);
         tokenCredentialFactory = new TokenCredentialFactory();
-        apiVersionProvider = new ApiVersionProvider();
+        apiVersionProvider = new ApiVersionProvider(featureProvider, namespaceProvider);
         workspace = new Workspace();
         fileSystem = new FileSystem();
-        fileResolver = new FileResolver();
-        featureProvider = new FeatureProvider();
+        fileResolver = new FileResolver(fileSystem);
         configurationManager = new BicepNetConfigurationManager(fileSystem);
         configuration = configurationManager.GetBuiltInConfiguration();
-        linterAnalyzer = new LinterAnalyzer(configuration);
-        namespaceProvider = new DefaultNamespaceProvider(new AzResourceTypeLoader(), featureProvider);
+        bicepAnalyzer = new LinterAnalyzer();
         clientFactory = new ContainerRegistryClientFactory(tokenCredentialFactory);
         moduleRegistryProvider = new DefaultModuleRegistryProvider(fileResolver,
             clientFactory,
             new TemplateSpecRepositoryFactory(tokenCredentialFactory),
-            featureProvider);
-        moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider);
-
-        azResourceTypeLoader = new AzResourceTypeLoader();
-        azResourceProvider = new AzureResourceProvider(tokenCredentialFactory, fileResolver, moduleDispatcher, configuration, featureProvider, namespaceProvider, apiVersionProvider, linterAnalyzer);
+            featureProvider,
+            configurationManager);
+        moduleDispatcher = new ModuleDispatcher(moduleRegistryProvider, configurationManager);
+        azResourceProvider = new AzureResourceProvider(tokenCredentialFactory, fileResolver, moduleDispatcher, configurationManager, featureProvider, namespaceProvider, apiVersionProvider, bicepAnalyzer);
         
         BicepVersion = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion ?? "dev";
         OciCachePath = Path.Combine(featureProvider.CacheRootDirectory, ModuleReferenceSchemes.Oci);
@@ -101,6 +106,15 @@ public static partial class BicepWrapper
         }
     }
 
+    private static bool LogDiagnostics(Compilation compilation)
+    {
+        if (compilation is null)
+        {
+            throw new Exception("Compilation is null. A compilation must exist before logging the diagnostics.");
+        }
+
+        return LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());
+    }
     private static bool LogDiagnostics(ImmutableDictionary<BicepFile,ImmutableArray<IDiagnostic>> diagnosticsByBicepFile)
     {
         bool success = true;
