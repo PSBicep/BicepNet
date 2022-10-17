@@ -1,14 +1,12 @@
-using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Diagnostics;
 using Bicep.Core.Emit;
 using Bicep.Core.Exceptions;
 using Bicep.Core.FileSystem;
-using Bicep.Core.Parsing;
+using Bicep.Core.Modules;
 using Bicep.Core.Registry;
 using Bicep.Core.Semantics;
 using Bicep.Core.Workspaces;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -21,23 +19,39 @@ public partial class BicepWrapper
 
     public static async Task PublishAsync(string inputFilePath, string targetModuleReference, bool noRestore = true)
     {
-        var inputUri = PathHelper.FilePathToFileUrl(inputFilePath);
+        var inputPath = PathHelper.ResolvePath(inputFilePath);
+        var inputUri = PathHelper.FilePathToFileUrl(inputPath);
+        var moduleReference = ValidateReference(targetModuleReference, inputUri);
 
-        // Create separate configuration for the build, to account for custom rule changes
-        var buildConfiguration = configurationManager.GetConfiguration(inputUri);
-
-        var moduleReference = moduleDispatcher.TryGetModuleReference(targetModuleReference, buildConfiguration, out var failureBuilder);
-
-        if (moduleReference is null)
+        if (PathHelper.HasArmTemplateLikeExtension(inputUri))
         {
-            failureBuilder = failureBuilder ?? throw new InvalidOperationException($"{nameof(moduleDispatcher.TryGetModuleReference)} did not provide an error.");
+            // Publishing an ARM template file.
+            using var armTemplateStream = fileSystem.FileStream.Create(inputPath, FileMode.Open, FileAccess.Read);
+            await PublishModuleAsync(moduleReference, armTemplateStream);
+            return;
+        }
 
-            // From Bicep project:
+        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
+        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProvider, bicepAnalyzer);
+        if (LogDiagnostics(compilation))
+        {
+            var stream = new MemoryStream();
+            new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider)).Emit(stream);
+
+            stream.Position = 0;
+            await PublishModuleAsync(moduleReference, stream);
+            return;
+        }
+    }
+
+    private static ModuleReference ValidateReference(string targetModuleReference, Uri targetModuleUri)
+    {
+        if (!moduleDispatcher.TryGetModuleReference(targetModuleReference, targetModuleUri, out var moduleReference, out var failureBuilder))
+        {
             // TODO: We should probably clean up the dispatcher contract so this sort of thing isn't necessary (unless we change how target module is set in this command)
-            var message = failureBuilder(new DiagnosticBuilder.DiagnosticBuilderInternal(new TextSpan(0, 0))).Message;
+            var message = failureBuilder(DiagnosticBuilder.ForDocumentStart()).Message;
 
-            // Changed from BicepException
-            throw new Exception(message);
+            throw new BicepException(message);
         }
 
         if (!moduleDispatcher.GetRegistryCapabilities(moduleReference).HasFlag(RegistryCapabilities.Publish))
@@ -45,20 +59,18 @@ public partial class BicepWrapper
             throw new BicepException($"The specified module target \"{targetModuleReference}\" is not supported.");
         }
 
-        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, buildConfiguration);
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, buildConfiguration, apiVersionProvider, new LinterAnalyzer(buildConfiguration));
-        var template = new List<string>();
+        return moduleReference;
+    }
 
-        bool success = LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());
-        if (!success)
+    private static async Task PublishModuleAsync(ModuleReference target, Stream stream)
+    {
+        try
         {
-            throw new Exception("The template was not valid, please fix the template before publishing!");
+            await moduleDispatcher.PublishModule(target, stream);
         }
-
-        var stream = new MemoryStream();
-        new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider)).Emit(stream);
-
-        stream.Position = 0;
-        await moduleDispatcher.PublishModule(compilation.Configuration, moduleReference, stream);
+        catch (ExternalModuleException exception)
+        {
+            throw new BicepException($"Unable to publish module \"{target.FullyQualifiedReference}\": {exception.Message}");
+        }
     }
 }
