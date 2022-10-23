@@ -85,64 +85,12 @@ public static partial class BicepWrapper
     public static void Initialize(ILogger bicepLogger)
     {
         logger = bicepLogger;
+        tokenCredentialFactory.logger = bicepLogger;
     }
 
-    public static void SetAuthentication(string? token = null, string? tenantId = null)
-    {
-        // User provided a token
-        if (!string.IsNullOrEmpty(token))
-        {
-            tokenCredentialFactory.InteractiveAuthentication = false;
-            logger?.LogInformation("Token provided as authentication.");
-
-            // Try to parse JWT for expiry date
-            try
-            {
-                var handler = new JwtSecurityTokenHandler();
-                var jwtSecurityToken = handler.ReadJwtToken(token);
-                var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
-                var expDateTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(tokenExp));
-
-                logger?.LogInformation("Successfully parsed token, expiration date is {expDateTime}.", expDateTime);
-                tokenCredentialFactory.Credential = new ExternalTokenCredential(token, expDateTime);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Could not parse token as JWT, please ensure it is provided in the correct format!", ex);
-            }
-        }
-        else // User did not provide a token - interactive auth
-        {
-            logger?.LogInformation("Opening interactive browser for authentication...");
-
-            // Since we cannot change the method signatures of the ITokenCredentialFactory, set properties and check them within the class
-            tokenCredentialFactory.InteractiveAuthentication = true;
-            tokenCredentialFactory.Credential = new InteractiveBrowserCredential(options: new() { AuthorityHost = configuration.Cloud.ActiveDirectoryAuthorityUri });
-            tokenCredentialFactory.TokenRequestContext = new TokenRequestContext(new[] { BicepNetTokenCredentialFactory.Scope }, tenantId: tenantId);
-
-            // Get token immediately to not delay the login until a command is executed
-            // The token is then stored within the SDK, in the credential object
-            tokenCredentialFactory.GetToken();
-
-            tokenCredentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
-
-            logger?.LogInformation("Authentication successful.");
-        }
-    }
-
-    public static void ClearAuthentication()
-    {
-        tokenCredentialFactory.InteractiveAuthentication = false;
-
-        if (tokenCredentialFactory.Credential == null)
-        {
-            logger?.LogInformation("No stored credential to clear.");
-            return;
-        }
-
-        tokenCredentialFactory.Credential = null;
-        logger?.LogInformation("Cleared stored credential.");
-    }
+    public static void ClearAuthentication() => tokenCredentialFactory.Clear();
+    public static void SetAuthentication(string? token = null, string? tenantId = null) =>
+        tokenCredentialFactory.SetToken(configuration.Cloud.ActiveDirectoryAuthorityUri, token, tenantId);
 
     public static BicepAccessToken? GetAccessToken()
     {
