@@ -40,16 +40,19 @@ BicepNet is developed for the Bicep PowerShell module but could be used for any 
     # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
     CmdletsToExport      = @(
         'Build-BicepNetFile'
+        'Clear-BicepNetCredential'
         'Convert-BicepNetResourceToBicep'
         'ConvertTo-BicepNetFile'
         'Export-BicepNetResource'
         'Export-BicepNetChildResource'
         'Find-BicepNetModule'
+        'Get-BicepNetAccessToken'
         'Get-BicepNetCachePath'
         'Get-BicepNetConfig'
         'Get-BicepNetVersion'
         'Publish-BicepNetFile'
         'Restore-BicepNetFile'
+        'Set-BicepNetCredential'
     )
 
     # Variables to export from this module

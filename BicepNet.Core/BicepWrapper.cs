@@ -1,4 +1,6 @@
 using Bicep.Core.Analyzers.Interfaces;
+using Azure.Core;
+using Azure.Identity;
 using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
@@ -7,12 +9,12 @@ using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Modules;
 using Bicep.Core.Registry;
-using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.Text;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
+using BicepNet.Core.Authentication;
 using BicepNet.Core.Azure;
 using BicepNet.Core.Configuration;
 using BicepNet.Core.Models;
@@ -21,8 +23,10 @@ using Microsoft.VisualStudio.Threading;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IdentityModel.Tokens.Jwt;
 using System.IO;
 using System.IO.Abstractions;
+using System.Linq;
 
 namespace BicepNet.Core;
 
@@ -40,7 +44,7 @@ public static partial class BicepWrapper
     private static readonly IFeatureProvider featureProvider;
     private static readonly IAzResourceTypeLoader azResourceTypeLoader;
     private static readonly INamespaceProvider namespaceProvider;
-    private static readonly ITokenCredentialFactory tokenCredentialFactory;
+    private static readonly BicepNetTokenCredentialFactory tokenCredentialFactory;
     private static readonly IApiVersionProvider apiVersionProvider;
     private static readonly IReadOnlyWorkspace workspace;
     private static readonly IFileSystem fileSystem;
@@ -60,7 +64,8 @@ public static partial class BicepWrapper
         featureProvider = new FeatureProvider();
         azResourceTypeLoader = new AzResourceTypeLoader();
         namespaceProvider = new DefaultNamespaceProvider(azResourceTypeLoader);
-        tokenCredentialFactory = new TokenCredentialFactory();
+        // Create a custom TokenCredentialFactory to allow for token input
+        tokenCredentialFactory = new BicepNetTokenCredentialFactory();
         apiVersionProvider = new ApiVersionProvider(featureProvider, namespaceProvider);
         workspace = new Workspace();
         fileSystem = new FileSystem();
@@ -85,6 +90,26 @@ public static partial class BicepWrapper
     public static void Initialize(ILogger bicepLogger)
     {
         logger = bicepLogger;
+        tokenCredentialFactory.logger = bicepLogger;
+    }
+
+    public static void ClearAuthentication() => tokenCredentialFactory.Clear();
+    public static void SetAuthentication(string? token = null, string? tenantId = null) =>
+        tokenCredentialFactory.SetToken(configuration.Cloud.ActiveDirectoryAuthorityUri, token, tenantId);
+
+    public static BicepAccessToken? GetAccessToken()
+    {
+        // Gets the token using the same request context as when connecting
+        var token = tokenCredentialFactory.Credential?.GetToken(tokenCredentialFactory.TokenRequestContext, System.Threading.CancellationToken.None);
+
+        if (!token.HasValue)
+        {
+            logger?.LogWarning("No access token currently stored!");
+            return null;
+        }
+
+        var tokenValue = token.Value;
+        return new BicepAccessToken(tokenValue.Token, tokenValue.ExpiresOn);
     }
 
     public static BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path)

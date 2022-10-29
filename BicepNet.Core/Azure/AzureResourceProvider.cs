@@ -130,9 +130,9 @@ public class AzureResourceProvider : IAzResourceProvider
 
         var printOptions = new PrettyPrintOptions(NewlineOption.LF, IndentKindOption.Space, 2, false);
         var program = new ProgramSyntax(
-        new[] { resourceDeclaration },
-        SyntaxFactory.CreateToken(TokenType.EndOfFile),
-        ImmutableArray<IDiagnostic>.Empty);
+            new[] { resourceDeclaration },
+            SyntaxFactory.CreateToken(TokenType.EndOfFile),
+            ImmutableArray<IDiagnostic>.Empty);
         var template = PrettyPrinter.PrintProgram(program, printOptions);
         BicepFile virtualBicepFile = SourceFileFactory.CreateBicepFile(new Uri($"inmemory://generated.bicep"), template);
         var workspace = new Workspace();
