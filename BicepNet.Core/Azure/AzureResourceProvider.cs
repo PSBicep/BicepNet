@@ -19,6 +19,7 @@ using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.Syntax;
 using Bicep.Core.Workspaces;
 using Bicep.LanguageServer.Providers;
+using BicepNet.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,20 +34,20 @@ public class AzureResourceProvider : IAzResourceProvider
     private readonly ITokenCredentialFactory credentialFactory;
     private readonly IFileResolver fileResolver;
     private readonly IModuleDispatcher moduleDispatcher;
-    private readonly RootConfiguration configuration;
+    private readonly BicepNetConfigurationManager configurationManager;
     private readonly IFeatureProvider featureProvider;
     private readonly INamespaceProvider namespaceProvider;
     private readonly IApiVersionProvider apiVersionProvider;
     private readonly IBicepAnalyzer linterAnalyzer;
 
     public AzureResourceProvider(ITokenCredentialFactory credentialFactory, IFileResolver fileResolver,
-        IModuleDispatcher moduleDispatcher, RootConfiguration configuration, IFeatureProvider featureProvider, INamespaceProvider namespaceProvider,
+        IModuleDispatcher moduleDispatcher, BicepNetConfigurationManager configurationManager, IFeatureProvider featureProvider, INamespaceProvider namespaceProvider,
         IApiVersionProvider apiVersionProvider, IBicepAnalyzer linterAnalyzer)
     {
         this.credentialFactory = credentialFactory;
         this.fileResolver = fileResolver;
         this.moduleDispatcher = moduleDispatcher;
-        this.configuration = configuration;
+        this.configurationManager = configurationManager;
         this.featureProvider = featureProvider;
         this.namespaceProvider = namespaceProvider;
         this.apiVersionProvider = apiVersionProvider;
@@ -57,7 +58,6 @@ public class AzureResourceProvider : IAzResourceProvider
     {
         var options = new ArmClientOptions
         {
-            //Diagnostics.ApplySharedResourceManagerSettings();
             Environment = new ArmEnvironment(configuration.Cloud.ResourceManagerEndpointUri, configuration.Cloud.AuthenticationScope)
         };
         if (resourceTypeApiVersionMapping.apiVersion is not null)
@@ -137,8 +137,9 @@ public class AzureResourceProvider : IAzResourceProvider
         BicepFile virtualBicepFile = SourceFileFactory.CreateBicepFile(new Uri($"inmemory://generated.bicep"), template);
         var workspace = new Workspace();
         workspace.UpsertSourceFiles(virtualBicepFile.AsEnumerable());
-        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, configuration, false);
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configuration, apiVersionProvider, linterAnalyzer);
+
+        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, false);
+        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProvider, linterAnalyzer);
         var bicepFile = RewriterHelper.RewriteMultiple(
                 compilation,
                 SourceFileFactory.CreateBicepFile(virtualBicepFile.FileUri, template),
