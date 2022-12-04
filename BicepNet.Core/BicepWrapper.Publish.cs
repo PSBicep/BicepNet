@@ -17,7 +17,9 @@ public partial class BicepWrapper
     public static void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true) => 
         joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference, noRestore));
 
+#pragma warning disable IDE0060 // Remove unused parameter
     public static async Task PublishAsync(string inputFilePath, string targetModuleReference, bool noRestore = true)
+#pragma warning restore IDE0060 // Remove unused parameter
     {
         var inputPath = PathHelper.ResolvePath(inputFilePath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
@@ -32,11 +34,11 @@ public partial class BicepWrapper
         }
 
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProvider, bicepAnalyzer);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, bicepAnalyzer);
         if (LogDiagnostics(compilation))
         {
             var stream = new MemoryStream();
-            new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider)).Emit(stream);
+            new TemplateEmitter(compilation.GetEntrypointSemanticModel()).Emit(stream);
 
             stream.Position = 0;
             await PublishModuleAsync(moduleReference, stream);

@@ -3,7 +3,7 @@ using System.Management.Automation;
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace BicepNet.PS
+namespace BicepNet.PS.LoadContext
 {
     public class BicepNetModuleInitializer : IModuleAssemblyInitializer
     {

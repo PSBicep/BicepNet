@@ -41,7 +41,7 @@ public partial class BicepWrapper
         sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping);
 
         LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, originalModulesToRestore, forceModulesRestore));
-        
+
         if (ErrorCount == 0)
         {
             if (modulesToRestoreReferences.Any())
@@ -59,25 +59,25 @@ public partial class BicepWrapper
         }
     }
 
-    private static ImmutableDictionary<BicepFile, ImmutableArray<IDiagnostic>> GetModuleRestoreDiagnosticsByBicepFile(SourceFileGrouping sourceFileGrouping, ImmutableHashSet<ModuleSourceResolutionInfo> originalModulesToRestore, bool forceModulesRestore)
+    private static ImmutableDictionary<BicepSourceFile, ImmutableArray<IDiagnostic>> GetModuleRestoreDiagnosticsByBicepFile(SourceFileGrouping sourceFileGrouping, ImmutableHashSet<ModuleSourceResolutionInfo> originalModulesToRestore, bool forceModulesRestore)
     {
         static IDiagnostic? DiagnosticForModule(SourceFileGrouping grouping, ModuleDeclarationSyntax module)
                 => grouping.TryGetErrorDiagnostic(module) is { } errorBuilder ? errorBuilder(DiagnosticBuilder.ForPosition(module.Path)) : null;
 
-        static IEnumerable<(BicepFile, IDiagnostic)> GetDiagnosticsForModulesToRestore(SourceFileGrouping grouping, ImmutableHashSet<ModuleSourceResolutionInfo> originalModulesToRestore)
+        static IEnumerable<(BicepSourceFile, IDiagnostic)> GetDiagnosticsForModulesToRestore(SourceFileGrouping grouping, ImmutableHashSet<ModuleSourceResolutionInfo> originalModulesToRestore)
         {
             foreach (var (module, sourceFile) in originalModulesToRestore)
             {
-                if (sourceFile is BicepFile bicepFile && DiagnosticForModule(grouping, module) is { } diagnostic)
+                if (sourceFile is BicepSourceFile bicepFile && DiagnosticForModule(grouping, module) is { } diagnostic)
                 {
                     yield return (bicepFile, diagnostic);
                 }
             }
         }
 
-        static IEnumerable<(BicepFile, IDiagnostic)> GetDiagnosticsForAllModules(SourceFileGrouping grouping)
+        static IEnumerable<(BicepSourceFile, IDiagnostic)> GetDiagnosticsForAllModules(SourceFileGrouping grouping)
         {
-            foreach (var bicepFile in grouping.SourceFiles.OfType<BicepFile>())
+            foreach (var bicepFile in grouping.SourceFiles.OfType<BicepSourceFile>())
             {
                 foreach (var module in bicepFile.ProgramSyntax.Declarations.OfType<ModuleDeclarationSyntax>())
                 {

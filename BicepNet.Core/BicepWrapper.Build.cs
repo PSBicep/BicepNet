@@ -20,10 +20,6 @@ public partial class BicepWrapper
     public static async Task<IList<string>> BuildAsync(string bicepPath, bool noRestore = false)
     {
         using var sw = new StringWriter();
-        using var writer = new SourceAwareJsonTextWriter(fileResolver, sw)
-        {
-            Formatting = Formatting.Indented
-        };
 
         var inputPath = PathHelper.ResolvePath(bicepPath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
@@ -34,8 +30,46 @@ public partial class BicepWrapper
         var template = new List<string>();
         if (success)
         {
-            var emitter = new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider));
-            emitter.Emit(writer);
+            var fileKind = compilation.SourceFileGrouping.EntryPoint.FileKind;
+            var semanticModel = compilation.GetEntrypointSemanticModel();
+            switch (fileKind)
+            {
+                case BicepSourceFileKind.BicepFile:
+                    {
+                        var sourceFileToTrack = semanticModel.Features.SourceMappingEnabled ? semanticModel.SourceFile : default;
+                        using var writer = new SourceAwareJsonTextWriter(semanticModel.FileResolver, sw, sourceFileToTrack)
+                        {
+                            Formatting = Formatting.Indented
+                        };
+
+                        var emitter = new TemplateEmitter(semanticModel);
+
+                        var result = emitter.Emit(writer);
+                        if(result.Status != EmitStatus.Succeeded)
+                        {
+                            throw new Exception($"Failed to emit template with error: ${result.Status}");
+                        }
+                        break;
+                    }
+
+                case BicepSourceFileKind.ParamsFile:
+                    {
+                        using var writer = new JsonTextWriter(sw)
+                        {
+                            Formatting = Formatting.Indented
+                        };
+
+                        var result = new ParametersEmitter(semanticModel).EmitParamsFile(writer);
+                        if (result.Status != EmitStatus.Succeeded)
+                        {
+                            throw new Exception($"Failed to emit params files with error: ${result.Status}");
+                        }
+                        break;
+                    }
+
+                default:
+                    throw new NotImplementedException($"Unexpected file kind '{fileKind}'");
+            }
             template.Add(sw.ToString());
         }
         return template;
@@ -56,7 +90,7 @@ public partial class BicepWrapper
                 sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping);
             }
         }
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProvider, bicepAnalyzer);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, bicepAnalyzer);
         
         LogDiagnostics(compilation);
 
@@ -82,7 +116,7 @@ public partial class BicepWrapper
                 sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping);
             }
         }
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProvider, bicepAnalyzer);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, bicepAnalyzer);
         LogDiagnostics(compilation);
 
         return compilation;

@@ -35,22 +35,22 @@ public class AzureResourceProvider : IAzResourceProvider
     private readonly IFileResolver fileResolver;
     private readonly IModuleDispatcher moduleDispatcher;
     private readonly BicepNetConfigurationManager configurationManager;
-    private readonly IFeatureProvider featureProvider;
+    private readonly IFeatureProviderFactory featureProviderFactory;
     private readonly INamespaceProvider namespaceProvider;
-    private readonly IApiVersionProvider apiVersionProvider;
+    private readonly IApiVersionProviderFactory apiVersionProviderFactory;
     private readonly IBicepAnalyzer linterAnalyzer;
 
     public AzureResourceProvider(ITokenCredentialFactory credentialFactory, IFileResolver fileResolver,
-        IModuleDispatcher moduleDispatcher, BicepNetConfigurationManager configurationManager, IFeatureProvider featureProvider, INamespaceProvider namespaceProvider,
-        IApiVersionProvider apiVersionProvider, IBicepAnalyzer linterAnalyzer)
+        IModuleDispatcher moduleDispatcher, BicepNetConfigurationManager configurationManager, IFeatureProviderFactory featureProviderFactory, INamespaceProvider namespaceProvider,
+        IApiVersionProviderFactory apiVersionProviderFactory, IBicepAnalyzer linterAnalyzer)
     {
         this.credentialFactory = credentialFactory;
         this.fileResolver = fileResolver;
         this.moduleDispatcher = moduleDispatcher;
         this.configurationManager = configurationManager;
-        this.featureProvider = featureProvider;
+        this.featureProviderFactory = featureProviderFactory;
         this.namespaceProvider = namespaceProvider;
-        this.apiVersionProvider = apiVersionProvider;
+        this.apiVersionProviderFactory = apiVersionProviderFactory;
         this.linterAnalyzer = linterAnalyzer;
     }
 
@@ -139,10 +139,10 @@ public class AzureResourceProvider : IAzResourceProvider
         workspace.UpsertSourceFiles(virtualBicepFile.AsEnumerable());
 
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, false);
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProvider, linterAnalyzer);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, linterAnalyzer);
         var bicepFile = RewriterHelper.RewriteMultiple(
                 compilation,
-                SourceFileFactory.CreateBicepFile(virtualBicepFile.FileUri, template),
+                virtualBicepFile,
                 rewritePasses: 5,
                 model => new TypeCasingFixerRewriter(model),
                 model => new ReadOnlyPropertyRemovalRewriter(model));
