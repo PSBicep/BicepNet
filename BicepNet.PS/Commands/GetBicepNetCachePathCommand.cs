@@ -18,11 +18,11 @@ namespace BicepNet.PS.Commands
             string result = "";
             if (Oci.IsPresent || ParameterSetName == "br")
             {
-                result = BicepWrapper.OciCachePath;
+                result = bicepWrapper.OciCachePath;
             }
             else if (TemplateSpecs.IsPresent)
             {
-                result = BicepWrapper.TemplateSpecsCachePath;
+                result = bicepWrapper.TemplateSpecsCachePath;
             }
             WriteObject(result);
         }

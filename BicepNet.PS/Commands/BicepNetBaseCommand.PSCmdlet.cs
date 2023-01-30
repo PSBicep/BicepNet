@@ -9,10 +9,12 @@ namespace BicepNet.PS.Commands
     public partial class BicepNetBaseCommand : PSCmdlet
     {
         private string name;
+        protected BicepWrapper bicepWrapper;
         protected override void BeginProcessing()
         {
             base.BeginProcessing();
-            BicepWrapper.Initialize(this);
+            bicepWrapper = new BicepWrapper(this);
+            //BicepWrapper.Initialize(this);
             name = MyInvocation.InvocationName;
         }
     }

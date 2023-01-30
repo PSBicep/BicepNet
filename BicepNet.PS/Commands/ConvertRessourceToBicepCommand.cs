@@ -16,7 +16,7 @@ public class ConvertBicepNetResourceToBicep : BicepNetBaseCommand
 
     protected override void ProcessRecord()
     {
-        var result = BicepWrapper.ConvertResourceToBicep(ResourceId, ResourceBody);
+        var result = bicepWrapper.ConvertResourceToBicep(ResourceId, ResourceBody);
         WriteObject(result);
     }
 }

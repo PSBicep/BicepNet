@@ -12,7 +12,7 @@ namespace BicepNet.PS.Commands
 
         protected override void ProcessRecord()
         {
-            var result = BicepWrapper.Decompile(Path);
+            var result = bicepWrapper.Decompile(Path);
             WriteObject(result);
         }
     }

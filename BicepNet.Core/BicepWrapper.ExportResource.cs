@@ -10,9 +10,9 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public static IDictionary<string, string> ExportResources(string[] ids) =>
+    public IDictionary<string, string> ExportResources(string[] ids) =>
         joinableTaskFactory.Run(() => ExportResourcesAsync(ids));
-    public static async Task<IDictionary<string, string>> ExportResourcesAsync(string[] ids)
+    public async Task<IDictionary<string, string>> ExportResourcesAsync(string[] ids)
     {
         IDictionary<string, string> result = new Dictionary<string, string>();
         var taskList = new List<Task<(string resourceName, string template)>>();
@@ -26,7 +26,7 @@ public partial class BicepWrapper
         }
         return result;
     }
-    private static async Task<(string resourceName, string template)> ExportResourceAsync(string id)
+    private async Task<(string resourceName, string template)> ExportResourceAsync(string id)
     {
         var resourceId = AzureHelpers.ValidateResourceId(id);
         resourceId.Deconstruct(

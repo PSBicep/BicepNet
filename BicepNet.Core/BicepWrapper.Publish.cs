@@ -14,11 +14,11 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public static void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true) => 
+    public void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true) => 
         joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference, noRestore));
 
 #pragma warning disable IDE0060 // Remove unused parameter
-    public static async Task PublishAsync(string inputFilePath, string targetModuleReference, bool noRestore = true)
+    public async Task PublishAsync(string inputFilePath, string targetModuleReference, bool noRestore = true)
 #pragma warning restore IDE0060 // Remove unused parameter
     {
         var inputPath = PathHelper.ResolvePath(inputFilePath);
@@ -46,7 +46,7 @@ public partial class BicepWrapper
         }
     }
 
-    private static ModuleReference ValidateReference(string targetModuleReference, Uri targetModuleUri)
+    private ModuleReference ValidateReference(string targetModuleReference, Uri targetModuleUri)
     {
         if (!moduleDispatcher.TryGetModuleReference(targetModuleReference, targetModuleUri, out var moduleReference, out var failureBuilder))
         {
@@ -64,7 +64,7 @@ public partial class BicepWrapper
         return moduleReference;
     }
 
-    private static async Task PublishModuleAsync(ModuleReference target, Stream stream)
+    private async Task PublishModuleAsync(ModuleReference target, Stream stream)
     {
         try
         {

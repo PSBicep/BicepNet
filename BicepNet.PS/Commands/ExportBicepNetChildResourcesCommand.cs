@@ -20,7 +20,7 @@ public class ExportBicepNetChildResourceCommand : BicepNetBaseCommand
 
     protected override void ProcessRecord()
     {
-        var result = BicepWrapper.ExportChildResoures(ParentResourceId, (ChildResourceType)Enum.Parse(typeof(ChildResourceType), ResourceType));
+        var result = bicepWrapper.ExportChildResoures(ParentResourceId, (ChildResourceType)Enum.Parse(typeof(ChildResourceType), ResourceType));
         WriteObject(result);
     }
 }

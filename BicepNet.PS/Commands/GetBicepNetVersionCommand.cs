@@ -9,7 +9,7 @@ namespace BicepNet.PS.Commands
     {
         protected override void EndProcessing()
         {
-            var result = BicepWrapper.BicepVersion;
+            var result = bicepWrapper.BicepVersion;
             WriteObject(result);
         }
     }

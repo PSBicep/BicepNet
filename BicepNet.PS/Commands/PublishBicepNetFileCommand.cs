@@ -16,7 +16,7 @@ namespace BicepNet.PS.Commands
 
         protected override void ProcessRecord()
         {
-            BicepWrapper.Publish(Path, Target, true);
+            bicepWrapper.Publish(Path, Target, true);
         }
     }
 }

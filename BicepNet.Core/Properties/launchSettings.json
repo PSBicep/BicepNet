@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BicepNet.Core": {
+      "commandName": "Project",
+      "commandLineArgs": "exportresource /providers/Microsoft.Management/managementGroups/EsLZ/providers/Microsoft.Authorization/policyDefinitions/Append-AppService-httpsonly"
+    }
+  }
+}

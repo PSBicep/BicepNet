@@ -10,7 +10,7 @@ namespace BicepNet.PS.Commands
         protected override void BeginProcessing()
         {
             base.BeginProcessing();
-            WriteObject(BicepWrapper.GetAccessToken());
+            WriteObject(bicepWrapper.GetAccessToken());
         }
     }
 }

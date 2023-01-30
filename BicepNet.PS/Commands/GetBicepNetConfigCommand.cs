@@ -38,7 +38,7 @@ namespace BicepNet.PS.Commands
         protected override void ProcessRecord()
         {
             // Parse Scope to enum and pass it together to BicepWrapper with Path, which can be null here if not provided
-            WriteObject(BicepWrapper.GetBicepConfigInfo((BicepConfigScope)Enum.Parse(typeof(BicepConfigScope), Scope), Path));
+            WriteObject(bicepWrapper.GetBicepConfigInfo((BicepConfigScope)Enum.Parse(typeof(BicepConfigScope), Scope), Path));
         }
     }
 }

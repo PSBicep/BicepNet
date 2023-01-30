@@ -22,10 +22,10 @@ namespace BicepNet.PS.Commands
             switch (ParameterSetName)
             {
                 case "Token":
-                    BicepWrapper.SetAuthentication(AccessToken);
+                    bicepWrapper.SetAuthentication(AccessToken);
                     break;
                 case "Interactive":
-                    BicepWrapper.SetAuthentication(null, TenantId);
+                    bicepWrapper.SetAuthentication(null, TenantId);
                     break;
                 default:
                     throw new Exception("Not a valid parameter set!");

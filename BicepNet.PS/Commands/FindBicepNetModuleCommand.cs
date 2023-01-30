@@ -23,13 +23,13 @@ namespace BicepNet.PS.Commands
             switch (ParameterSetName)
             {
                 case "Path":
-                    WriteObject(BicepWrapper.FindModules(Path, false));
+                    WriteObject(bicepWrapper.FindModules(Path, false));
                     break;
                 case "Registry":
-                    WriteObject(BicepWrapper.FindModules(Registry, true));
+                    WriteObject(bicepWrapper.FindModules(Registry, true));
                     break;
                 case "Cache":
-                    WriteObject(BicepWrapper.FindModules());
+                    WriteObject(bicepWrapper.FindModules());
                     break;
                 default:
                     break;

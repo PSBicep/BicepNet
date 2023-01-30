@@ -18,7 +18,7 @@ public partial class BicepWrapper
     /// <summary>
     /// Find modules in registries by using a specific endpoints or by seraching a bicep file.
     /// </summary>
-    public static IList<BicepRepository> FindModules(string inputString, bool isRegistryEndpoint)
+    public IList<BicepRepository> FindModules(string inputString, bool isRegistryEndpoint)
     {
         List<string> endpoints = new();
 
@@ -50,7 +50,7 @@ public partial class BicepWrapper
     /// <summary>
     /// Find modules in registries by using endpoints restored to cache.
     /// </summary>
-    public static IList<BicepRepository> FindModules()
+    public IList<BicepRepository> FindModules()
     {
         List<string> endpoints = new();
 
@@ -66,7 +66,7 @@ public partial class BicepWrapper
         return FindModulesByEndpoints(endpoints);
     }
 
-    private static IList<BicepRepository> FindModulesByEndpoints(IList<string> endpoints)
+    private IList<BicepRepository> FindModulesByEndpoints(IList<string> endpoints)
     {
         if (endpoints.Count > 0)
         {

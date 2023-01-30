@@ -15,7 +15,7 @@ namespace BicepNet.PS.Commands
 
         protected override void ProcessRecord()
         {
-            var result = BicepWrapper.Build(Path, NoRestore.IsPresent);
+            var result = bicepWrapper.Build(Path, NoRestore.IsPresent);
             WriteObject(result);
         }
     }
