@@ -4,7 +4,6 @@ using Bicep.Core.Analyzers.Interfaces;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
 using Bicep.Core.Diagnostics;
-using Bicep.Core.Extensions;
 using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Parsing;
@@ -13,17 +12,13 @@ using Bicep.Core.PrettyPrint.Options;
 using Bicep.Core.Registry;
 using Bicep.Core.Registry.Auth;
 using Bicep.Core.Resources;
-using Bicep.Core.Rewriters;
-using Bicep.Core.Semantics;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.Syntax;
-using Bicep.Core.Workspaces;
 using Bicep.LanguageServer.Providers;
 using BicepNet.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,7 +110,7 @@ public class AzureResourceProvider : IAzResourceProvider
         }
 
     }
-    public string GenerateBicepTemplate(IAzResourceProvider.AzResourceIdentifier resourceId, ResourceTypeReference resourceType, JsonElement resource)
+    public static string GenerateBicepTemplate(IAzResourceProvider.AzResourceIdentifier resourceId, ResourceTypeReference resourceType, JsonElement resource)
     {
         var resourceIdentifier = new ResourceIdentifier(resourceId.FullyQualifiedId);
         string targetScope = (string?)(resourceIdentifier.Parent?.ResourceType) switch
@@ -134,19 +129,7 @@ public class AzureResourceProvider : IAzResourceProvider
             SyntaxFactory.CreateToken(TokenType.EndOfFile),
             ImmutableArray<IDiagnostic>.Empty);
         var template = PrettyPrinter.PrintProgram(program, printOptions);
-        BicepFile virtualBicepFile = SourceFileFactory.CreateBicepFile(new Uri($"inmemory://generated.bicep"), template);
-        var workspace = new Workspace();
-        workspace.UpsertSourceFiles(virtualBicepFile.AsEnumerable());
 
-        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, false);
-        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, linterAnalyzer);
-        var bicepFile = RewriterHelper.RewriteMultiple(
-                compilation,
-                virtualBicepFile,
-                rewritePasses: 5,
-                model => new TypeCasingFixerRewriter(model),
-                model => new ReadOnlyPropertyRemovalRewriter(model));
-        template = PrettyPrinter.PrintProgram(bicepFile.ProgramSyntax, printOptions);
         template = targetScope + template;
         return template;
     }

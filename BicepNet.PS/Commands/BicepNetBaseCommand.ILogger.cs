@@ -8,7 +8,7 @@ namespace BicepNet.PS.Commands
 {
     public partial class BicepNetBaseCommand : ILogger
     {
-        private readonly List<LogLevel> logLevels = new List<LogLevel>() {
+        private readonly List<LogLevel> logLevels = new() {
             LogLevel.Trace,
             LogLevel.Debug,
             LogLevel.Information,

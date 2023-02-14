@@ -28,7 +28,7 @@ public partial class BicepWrapper
         if (PathHelper.HasArmTemplateLikeExtension(inputUri))
         {
             // Publishing an ARM template file.
-            using var armTemplateStream = fileSystem.FileStream.Create(inputPath, FileMode.Open, FileAccess.Read);
+            using var armTemplateStream = fileSystem.FileStream.New(inputPath, FileMode.Open, FileAccess.Read);
             await PublishModuleAsync(moduleReference, armTemplateStream);
             return;
         }

@@ -42,7 +42,7 @@ public partial class BicepWrapper
     public string OciCachePath { get; }
     public string TemplateSpecsCachePath { get; }
 
-    private ILogger logger;
+    private readonly ILogger logger;
     private BicepDiagnosticLogger diagnosticLogger;
     private readonly IServiceProvider services;
 
@@ -56,7 +56,6 @@ public partial class BicepWrapper
     private readonly IAzResourceTypeLoader azResourceTypeLoader;
     private readonly IFileResolver fileResolver;
     private readonly IFileSystem fileSystem;
-    //private readonly IConfigurationManager configurationManager;
     private readonly BicepNetConfigurationManager configurationManager;
     private readonly IApiVersionProviderFactory apiVersionProviderFactory;
     private readonly IBicepAnalyzer bicepAnalyzer;
@@ -73,8 +72,9 @@ public partial class BicepWrapper
     public BicepWrapper(ILogger bicepLogger)
     {
         BicepDeploymentsInterop.Initialize();
-        //services = ConfigureServices()
         services = new ServiceCollection()
+            .AddSingleton<BicepNetConfigurationManager>()
+
             .AddSingleton<INamespaceProvider, DefaultNamespaceProvider>()
             .AddSingleton<IAzResourceTypeLoader, AzResourceTypeLoader>()
             .AddSingleton<IContainerRegistryClientFactory, ContainerRegistryClientFactory>()
@@ -84,12 +84,11 @@ public partial class BicepWrapper
             .AddSingleton<ITokenCredentialFactory, TokenCredentialFactory>()
             .AddSingleton<IFileResolver, FileResolver>()
             .AddSingleton<IFileSystem, IOFileSystem>()
-            .AddSingleton<IConfigurationManager, ConfigurationManager>()
+            .AddSingleton<IConfigurationManager>(s => s.GetRequiredService<BicepNetConfigurationManager>())
             .AddSingleton<IApiVersionProviderFactory, ApiVersionProviderFactory>()
             .AddSingleton<IBicepAnalyzer, LinterAnalyzer>()
             .AddSingleton<IFeatureProviderFactory, FeatureProviderFactory>()
             .AddSingleton<ILinterRulesProvider, LinterRulesProvider>()
-            
             
             .AddSingleton<BicepCompiler>()
             .AddSingleton<BicepDecompiler>()
@@ -97,17 +96,17 @@ public partial class BicepWrapper
             .AddSingleton<AzureResourceProvider>()
             .AddSingleton<IAzResourceProvider>(s => s.GetRequiredService<AzureResourceProvider>())
             .AddSingleton<Workspace>()
-            
+
             .AddSingleton(bicepLogger)
             .AddSingleton<IDiagnosticLogger, BicepDiagnosticLogger>()
             .AddSingleton<CompilationService>()
 
             .AddSingleton<BicepNetTokenCredentialFactory>()
-            .AddSingleton<BicepNetConfigurationManager>()
             .Replace(ServiceDescriptor.Singleton<ITokenCredentialFactory>(s => s.GetRequiredService<BicepNetTokenCredentialFactory>()))
             .BuildServiceProvider();
 
         joinableTaskFactory = new JoinableTaskFactory(new JoinableTaskContext());
+        logger = services.GetRequiredService<ILogger>();
         diagnosticLogger = (BicepDiagnosticLogger)services.GetRequiredService<IDiagnosticLogger>();
         namespaceProvider = services.GetRequiredService<INamespaceProvider>();
         azResourceTypeLoader = services.GetRequiredService<IAzResourceTypeLoader>();
@@ -115,7 +114,7 @@ public partial class BicepWrapper
         moduleDispatcher = services.GetRequiredService<IModuleDispatcher>();
         moduleRegistryProvider = services.GetRequiredService<IModuleRegistryProvider>();
         tokenCredentialFactory = services.GetRequiredService<BicepNetTokenCredentialFactory>();
-        tokenCredentialFactory.logger = bicepLogger;
+        tokenCredentialFactory.logger = services.GetRequiredService<ILogger>();
         fileResolver = services.GetRequiredService<IFileResolver>();
         fileSystem = services.GetRequiredService<IFileSystem>();
         configurationManager = services.GetRequiredService<BicepNetConfigurationManager>();
@@ -136,15 +135,6 @@ public partial class BicepWrapper
         TemplateSpecsCachePath = Path.Combine(services.GetRequiredService<IFeatureProviderFactory>().GetFeatureProvider(new Uri("inmemory:///main.bicp")).CacheRootDirectory, ModuleReferenceSchemes.TemplateSpecs);
     }
 
-    public static void Initialize(ILogger bicepLogger)
-    {
-        
-        //logger = bicepLogger;
-        //diagnosticLogger = new BicepDiagnosticLogger(bicepLogger);
-
-        //tokenCredentialFactory.logger = bicepLogger;
-    }
-
     public void ClearAuthentication() => tokenCredentialFactory.Clear();
     public void SetAuthentication(string? token = null, string? tenantId = null) =>
         tokenCredentialFactory.SetToken(configuration.Cloud.ActiveDirectoryAuthorityUri, token, tenantId);
@@ -156,7 +146,7 @@ public partial class BicepWrapper
 
         if (!token.HasValue)
         {
-            logger?.LogWarning("No access token currently stored!");
+            logger.LogWarning("No access token currently stored!");
             return null;
         }
 
@@ -164,24 +154,8 @@ public partial class BicepWrapper
         return new BicepAccessToken(tokenValue.Token, tokenValue.ExpiresOn);
     }
 
-    public BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path)
-    {
-        switch (scope)
-        {
-            case BicepConfigScope.Default:
-                return BicepNetConfigurationManager.GetConfigurationInfo();
-            // Merged and Local uses the same logic
-            case BicepConfigScope.Merged:
-            case BicepConfigScope.Local:
-                if (path == null)
-                {
-                    throw new ArgumentException("Path must be provided for this Scope!");
-                }
-                return configurationManager.GetConfigurationInfo(scope, PathHelper.FilePathToFileUrl(path));
-            default:
-                throw new ArgumentException("BicepConfigMode not valid!");
-        }
-    }
+    public BicepConfigInfo GetBicepConfigInfo(BicepConfigScope scope, string path) =>
+        configurationManager.GetConfigurationInfo(scope, PathHelper.FilePathToFileUrl(path ?? ""));
 
     private bool LogDiagnostics(Compilation compilation)
     {
@@ -205,43 +179,5 @@ public partial class BicepWrapper
         }
         return success;
     }
-    //private static string GetDiagnosticsOutput(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
-    //{
-    //    var localPath = fileUri.LocalPath;
-    //    var position = TextCoordinateConverter.GetPosition(lineStarts, diagnostic.Span.Position);
-    //    var line = position.line;
-    //    var character = position.character;
-    //    var level = diagnostic.Level;
-    //    var code = diagnostic.Code;
-    //    var message = diagnostic.Message;
-
-    //    var codeDescription = diagnostic.Uri is null ? string.Empty : $" [{diagnostic.Uri.AbsoluteUri}]";
-
-    //    return $"{localPath}({line},{character}) : {level} {code}: {message}{codeDescription}";
-    //}
-    //private static void LogDiagnostic(Uri fileUri, IDiagnostic diagnostic, ImmutableArray<int> lineStarts)
-    //{
-    //    var message = GetDiagnosticsOutput(fileUri, diagnostic, lineStarts);
-
-    //    switch (diagnostic.Level)
-    //    {
-    //        case DiagnosticLevel.Off:
-    //            break;
-    //        case DiagnosticLevel.Info:
-    //            logger?.LogInformation("{message}", message);
-    //            break;
-    //        case DiagnosticLevel.Warning:
-    //            logger?.LogWarning("{message}", message);
-    //            break;
-    //        case DiagnosticLevel.Error:
-    //            logger?.LogError("{message}", message);
-    //            break;
-    //        default:
-    //            break;
-    //    }
-
-    //    // Increment counters
-    //    if (diagnostic.Level == DiagnosticLevel.Warning) { WarningCount++; }
-    //    if (diagnostic.Level == DiagnosticLevel.Error) { ErrorCount++; }
-    //}
+    
 }

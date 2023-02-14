@@ -1,4 +1,5 @@
 using BicepNet.Core.Azure;
+using BicepNet.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,10 +9,10 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-	public IDictionary<string, string> ExportChildResoures(string scopeId, ChildResourceType type) =>
-		joinableTaskFactory.Run(() => ExportChildResouresAsync(scopeId, type));
+	public IDictionary<string, string> ExportChildResoures(string scopeId, ChildResourceType type, string? configurationPath = null, bool includeTargetScope = false) =>
+		joinableTaskFactory.Run(() => ExportChildResouresAsync(scopeId, type, configurationPath, includeTargetScope));
 
-	public async Task<IDictionary<string, string>> ExportChildResouresAsync(string scopeId, ChildResourceType type)
+	public async Task<IDictionary<string, string>> ExportChildResouresAsync(string scopeId, ChildResourceType type, string? configurationPath = null, bool includeTargetScope = false)
 	{
 		Dictionary<string, string> result = new();
 		var scopeResourceId = AzureHelpers.ValidateResourceId(scopeId);
@@ -28,15 +29,16 @@ public partial class BicepWrapper
 			_ => throw new Exception("Invalid child resource type"),
 		};
 		var matchedType = BicepHelper.ResolveBicepTypeDefinition(fullyQualifiedType, azResourceTypeLoader, logger);
-		switch (type)
+        var config = configurationManager.GetConfiguration(new Uri(configurationPath ?? ""));
+        switch (type)
 		{
 			case ChildResourceType.PolicyDefinitions:
-				var policyDefinitions = await azResourceProvider.GetChildResourcesAsync(configuration, scopeResourceId, type, matchedType.ApiVersion, cancellationToken);
+				var policyDefinitions = await azResourceProvider.GetChildResourcesAsync(config, scopeResourceId, type, matchedType.ApiVersion, cancellationToken);
 				foreach (var (id, resource) in policyDefinitions)
 				{
-                        var name = AzureHelpers.GetResourceFriendlyName(id);
+                    var name = AzureHelpers.GetResourceFriendlyName(id);
 					var resourceId = AzureHelpers.ValidateResourceId(id);
-					result.Add(name, azResourceProvider.GenerateBicepTemplate(resourceId, matchedType, resource));
+					result.Add(name, GenerateBicepTemplate(resourceId, matchedType, resource, includeTargetScope: includeTargetScope));
 				}
 				break;
 			default:
