@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+
 namespace BicepNet.Core;
 
 public partial class BicepWrapper
@@ -56,5 +57,4 @@ public partial class BicepWrapper
 
         return template;
     }
-
 }

@@ -26,8 +26,10 @@ public partial class BicepWrapper
         {
             result.Add(name, template);
         }
+
         return result;
     }
+
     private async Task<(string resourceName, string template)> ExportResourceAsync(string id, string? configurationPath = null, bool includeTargetScope = false)
     {
         var resourceId = AzureHelpers.ValidateResourceId(id);
@@ -56,6 +58,7 @@ public partial class BicepWrapper
         string template = GenerateBicepTemplate(resourceId, matchedType, resource, includeTargetScope: includeTargetScope);
         template = RewriteBicepTemplate(template);
         var name = AzureHelpers.GetResourceFriendlyName(id);
+
         return (name, template);
     }
 }

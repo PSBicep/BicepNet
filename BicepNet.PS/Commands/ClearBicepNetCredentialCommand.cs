@@ -1,16 +1,14 @@
-using BicepNet.Core;
 using System.Management.Automation;
 
-namespace BicepNet.PS.Commands
+namespace BicepNet.PS.Commands;
+
+[Cmdlet(VerbsCommon.Clear, "BicepNetCredential")]
+[CmdletBinding()]
+public class ClearBicepNetCredentialCommand : BicepNetBaseCommand
 {
-    [Cmdlet(VerbsCommon.Clear, "BicepNetCredential")]
-    [CmdletBinding()]
-    public class ClearBicepNetCredentialCommand : BicepNetBaseCommand
+    protected override void BeginProcessing()
     {
-        protected override void BeginProcessing()
-        {
-            base.BeginProcessing();
-            bicepWrapper.ClearAuthentication();
-        }
+        base.BeginProcessing();
+        bicepWrapper.ClearAuthentication();
     }
 }

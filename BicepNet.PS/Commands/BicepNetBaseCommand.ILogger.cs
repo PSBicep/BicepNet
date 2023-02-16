@@ -1,58 +1,56 @@
-﻿using BicepNet.Core;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Management.Automation;
 
-namespace BicepNet.PS.Commands
+namespace BicepNet.PS.Commands;
+
+public partial class BicepNetBaseCommand : ILogger
 {
-    public partial class BicepNetBaseCommand : ILogger
+    private readonly List<LogLevel> logLevels = new() {
+        LogLevel.Trace,
+        LogLevel.Debug,
+        LogLevel.Information,
+        LogLevel.Warning,
+        LogLevel.Error
+    };
+
+    public IDisposable BeginScope<TState>(TState state) => default!;
+
+    public bool IsEnabled(LogLevel logLevel) => logLevels.Contains(logLevel);
+
+    public void Log<TState>(
+        LogLevel logLevel,
+        EventId eventId,
+        TState state,
+        Exception exception,
+        Func<TState, Exception, string> formatter)
     {
-        private readonly List<LogLevel> logLevels = new() {
-            LogLevel.Trace,
-            LogLevel.Debug,
-            LogLevel.Information,
-            LogLevel.Warning,
-            LogLevel.Error
-        };
-
-        public IDisposable BeginScope<TState>(TState state) => default!;
-
-        public bool IsEnabled(LogLevel logLevel) => logLevels.Contains(logLevel);
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception exception,
-            Func<TState, Exception, string> formatter)
+        if (!IsEnabled(logLevel))
         {
-            if (!IsEnabled(logLevel))
-            {
-                return;
-            }
+            return;
+        }
 
-            switch (logLevel)
-            {
-                case LogLevel.Trace:
-                    WriteVerbose(formatter(state, exception));
-                    break;
-                case LogLevel.Debug:
-                    WriteDebug(formatter(state, exception));
-                    break;
-                case LogLevel.Information:
-                    WriteVerbose(formatter(state, exception));
-                    //WriteInformation(new InformationRecord(formatter(state, exception), name));
-                    break;
-                case LogLevel.Warning:
-                    WriteWarning(formatter(state, exception));
-                    break;
-                case LogLevel.Error:
-                    WriteError(new ErrorRecord(exception ?? new Exception(formatter(state, exception)), name, ErrorCategory.WriteError, null));
-                    break;
-                default:
-                    break;
-            }
+        switch (logLevel)
+        {
+            case LogLevel.Trace:
+                WriteVerbose(formatter(state, exception));
+                break;
+            case LogLevel.Debug:
+                WriteDebug(formatter(state, exception));
+                break;
+            case LogLevel.Information:
+                WriteVerbose(formatter(state, exception));
+                //WriteInformation(new InformationRecord(formatter(state, exception), name));
+                break;
+            case LogLevel.Warning:
+                WriteWarning(formatter(state, exception));
+                break;
+            case LogLevel.Error:
+                WriteError(new ErrorRecord(exception ?? new Exception(formatter(state, exception)), name, ErrorCategory.WriteError, null));
+                break;
+            default:
+                break;
         }
     }
 }

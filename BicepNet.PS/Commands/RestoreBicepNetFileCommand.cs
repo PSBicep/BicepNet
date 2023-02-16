@@ -1,18 +1,16 @@
-using BicepNet.Core;
 using System.Management.Automation;
 
-namespace BicepNet.PS.Commands
-{
-    [Cmdlet(VerbsData.Restore, "BicepNetFile")]
-    public class RestoreBicepNetFileCommand : BicepNetBaseCommand
-    {
-        [Parameter(Mandatory = true, ValueFromPipeline = true)]
-        [ValidateNotNullOrEmpty]
-        public string Path { get; set; }
+namespace BicepNet.PS.Commands;
 
-        protected override void ProcessRecord()
-        {
-            bicepWrapper.Restore(Path);
-        }
+[Cmdlet(VerbsData.Restore, "BicepNetFile")]
+public class RestoreBicepNetFileCommand : BicepNetBaseCommand
+{
+    [Parameter(Mandatory = true, ValueFromPipeline = true)]
+    [ValidateNotNullOrEmpty]
+    public string Path { get; set; }
+
+    protected override void ProcessRecord()
+    {
+        bicepWrapper.Restore(Path);
     }
 }

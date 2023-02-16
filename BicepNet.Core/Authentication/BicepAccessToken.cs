@@ -1,21 +1,20 @@
 ﻿using System;
 
-namespace BicepNet.Core.Authentication
+namespace BicepNet.Core.Authentication;
+
+public class BicepAccessToken
 {
-    public class BicepAccessToken
+    public string Token { get; set; }
+    public DateTimeOffset ExpiresOn { get; set; }
+
+    public BicepAccessToken(string token, DateTimeOffset expiresOn)
     {
-        public string Token { get; set; }
-        public DateTimeOffset ExpiresOn { get; set; }
+        Token = token;
+        ExpiresOn = expiresOn;
+    }
 
-        public BicepAccessToken(string token, DateTimeOffset expiresOn)
-        {
-            Token = token;
-            ExpiresOn = expiresOn;
-        }
-
-        public override string ToString()
-        {
-            return Token;
-        }
+    public override string ToString()
+    {
+        return Token;
     }
 }

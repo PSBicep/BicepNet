@@ -1,5 +1,4 @@
-﻿using BicepNet.Core;
-using System.Management.Automation;
+﻿using System.Management.Automation;
 
 namespace BicepNet.PS.Commands;
 

@@ -1,9 +1,6 @@
-using BicepNet.Core;
 using BicepNet.Core.Azure;
-using BicepNet.Core.Configuration;
 using System;
 using System.Management.Automation;
-using static System.Formats.Asn1.AsnWriter;
 
 namespace BicepNet.PS.Commands;
 

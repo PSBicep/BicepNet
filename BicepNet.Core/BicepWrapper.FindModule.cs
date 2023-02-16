@@ -176,6 +176,7 @@ public partial class BicepWrapper
                 logger?.LogError(ex, "Could not get modules from endpoint {endpoint}!", endpoint);
             }
         }
+
         return repos;
     }
 }

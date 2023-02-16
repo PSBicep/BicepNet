@@ -1,9 +1,7 @@
-﻿using Bicep.Cli;
-using Bicep.Cli.Logging;
+﻿using Bicep.Cli.Logging;
 using Bicep.Cli.Services;
 using Bicep.Core;
 using Bicep.Core.Analyzers.Interfaces;
-using Bicep.Core.Analyzers.Linter;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
 using Bicep.Core.Diagnostics;
@@ -12,19 +10,16 @@ using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Modules;
 using Bicep.Core.Registry;
-using Bicep.Core.Registry.Auth;
 using Bicep.Core.Semantics;
 using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.TypeSystem.Az;
 using Bicep.Core.Workspaces;
 using Bicep.Decompiler;
-using Bicep.LanguageServer.Providers;
 using BicepNet.Core.Authentication;
 using BicepNet.Core.Azure;
 using BicepNet.Core.Configuration;
 using BicepNet.Core.Models;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Threading;
 using System;
@@ -32,7 +27,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.IO.Abstractions;
-using IOFileSystem = System.IO.Abstractions.FileSystem;
 
 namespace BicepNet.Core;
 
@@ -73,36 +67,7 @@ public partial class BicepWrapper
     {
         BicepDeploymentsInterop.Initialize();
         services = new ServiceCollection()
-            .AddSingleton<BicepNetConfigurationManager>()
-
-            .AddSingleton<INamespaceProvider, DefaultNamespaceProvider>()
-            .AddSingleton<IAzResourceTypeLoader, AzResourceTypeLoader>()
-            .AddSingleton<IContainerRegistryClientFactory, ContainerRegistryClientFactory>()
-            .AddSingleton<ITemplateSpecRepositoryFactory, TemplateSpecRepositoryFactory>()
-            .AddSingleton<IModuleDispatcher, ModuleDispatcher>()
-            .AddSingleton<IModuleRegistryProvider, DefaultModuleRegistryProvider>()
-            .AddSingleton<ITokenCredentialFactory, TokenCredentialFactory>()
-            .AddSingleton<IFileResolver, FileResolver>()
-            .AddSingleton<IFileSystem, IOFileSystem>()
-            .AddSingleton<IConfigurationManager>(s => s.GetRequiredService<BicepNetConfigurationManager>())
-            .AddSingleton<IApiVersionProviderFactory, ApiVersionProviderFactory>()
-            .AddSingleton<IBicepAnalyzer, LinterAnalyzer>()
-            .AddSingleton<IFeatureProviderFactory, FeatureProviderFactory>()
-            .AddSingleton<ILinterRulesProvider, LinterRulesProvider>()
-            
-            .AddSingleton<BicepCompiler>()
-            .AddSingleton<BicepDecompiler>()
-
-            .AddSingleton<AzureResourceProvider>()
-            .AddSingleton<IAzResourceProvider>(s => s.GetRequiredService<AzureResourceProvider>())
-            .AddSingleton<Workspace>()
-
-            .AddSingleton(bicepLogger)
-            .AddSingleton<IDiagnosticLogger, BicepDiagnosticLogger>()
-            .AddSingleton<CompilationService>()
-
-            .AddSingleton<BicepNetTokenCredentialFactory>()
-            .Replace(ServiceDescriptor.Singleton<ITokenCredentialFactory>(s => s.GetRequiredService<BicepNetTokenCredentialFactory>()))
+            .AddBicepNet(bicepLogger)
             .BuildServiceProvider();
 
         joinableTaskFactory = new JoinableTaskFactory(new JoinableTaskContext());
@@ -166,6 +131,7 @@ public partial class BicepWrapper
 
         return LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());
     }
+
     private bool LogDiagnostics(ImmutableDictionary<BicepSourceFile,ImmutableArray<IDiagnostic>> diagnosticsByBicepFile)
     {
         bool success = true;
@@ -179,5 +145,4 @@ public partial class BicepWrapper
         }
         return success;
     }
-    
 }

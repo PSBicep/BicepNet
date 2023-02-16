@@ -27,8 +27,8 @@ public partial class BicepWrapper
 
         var template = GenerateBicepTemplate(id, matchedType, resource, includeTargetScope: true);
         template = RewriteBicepTemplate(template);
-        return template;
 
+        return template;
     }
 
     public string RewriteBicepTemplate(string template)
@@ -49,6 +49,7 @@ public partial class BicepWrapper
                 model => new ReadOnlyPropertyRemovalRewriter(model));
         var printOptions = new PrettyPrintOptions(NewlineOption.LF, IndentKindOption.Space, 2, false);
         template = PrettyPrinter.PrintProgram(bicepFile.ProgramSyntax, printOptions);
+
         return template;
     }
 
@@ -71,6 +72,7 @@ public partial class BicepWrapper
             SyntaxFactory.CreateToken(TokenType.EndOfFile),
             ImmutableArray<IDiagnostic>.Empty);
         var template = PrettyPrinter.PrintProgram(program, printOptions);
+
         return includeTargetScope ? targetScope + template : template;
     }
 }

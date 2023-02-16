@@ -13,8 +13,6 @@ public class BicepRepository
         Name = name;
         Endpoint = endpoint;
     }
-    public override string ToString()
-    {
-        return Name;
-    }
+
+    public override string ToString() => Name;
 }

@@ -14,12 +14,10 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true) => 
-        joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference, noRestore));
+    public void Publish(string inputFilePath, string targetModuleReference) => 
+        joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference));
 
-#pragma warning disable IDE0060 // Remove unused parameter
-    public async Task PublishAsync(string inputFilePath, string targetModuleReference, bool noRestore = true)
-#pragma warning restore IDE0060 // Remove unused parameter
+    public async Task PublishAsync(string inputFilePath, string targetModuleReference)
     {
         var inputPath = PathHelper.ResolvePath(inputFilePath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
