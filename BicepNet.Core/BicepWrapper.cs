@@ -56,9 +56,7 @@ public partial class BicepWrapper
     private readonly IFeatureProviderFactory featureProviderFactory;
     private readonly BicepCompiler compiler;
     private readonly CompilationService compilationService;
-
     private readonly BicepDecompiler decompiler;
-
     private readonly Workspace workspace;
     private readonly RootConfiguration configuration;
     private readonly AzureResourceProvider azResourceProvider;

@@ -12,7 +12,6 @@ namespace BicepNet.Core.Configuration;
 // Our code is kept in separate file to simplify maintenance
 public partial class BicepNetConfigurationManager
 {
-
     private const string BuiltInConfigurationResourceName = "BicepNet.Core.Configuration.bicepconfig.json";
     
     public BicepConfigInfo GetConfigurationInfo()
@@ -47,9 +46,11 @@ public partial class BicepNetConfigurationManager
 
     // From Bicep.Core, implement GetBuiltInConfiguration to replace IConfigurationManager.GetBuiltInConfiguration()
     private RootConfiguration GetDefaultConfiguration() => BuiltInConfigurationLazy.Value;
-    private static readonly Lazy<RootConfiguration> BuiltInConfigurationLazy =
-            new(() => RootConfiguration.Bind(BuiltInConfigurationElement));
+
+    private static readonly Lazy<RootConfiguration> BuiltInConfigurationLazy = new(() => RootConfiguration.Bind(BuiltInConfigurationElement));
+
     protected static readonly JsonElement BuiltInConfigurationElement = GetBuiltInConfigurationElement();
+
     private static JsonElement GetBuiltInConfigurationElement()
     {
         using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(BuiltInConfigurationResourceName);

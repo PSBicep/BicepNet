@@ -20,6 +20,7 @@ internal static class PolicyHelper
             _ => throw new Exception($"Failed to list PolicyDefinitions on scope '{scopeResourceId}' with type '{scopeResourceId.ResourceType}"),
         };
     }
+    
     public static async Task<JsonElement> GetPolicyDefinitionAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
     {
         switch (resourceIdentifier.Parent?.ResourceType)

@@ -35,5 +35,4 @@ public class BicepNetModuleInitializer : IModuleAssemblyInitializer
         // Now load the Engine assembly through the dependency ALC, and let it resolve further dependencies automatically
         return DependencyAssemblyLoadContext.GetForDirectory(s_binCommonPath).LoadFromAssemblyName(assemblyName);
     }
-
 }

@@ -64,6 +64,7 @@ public class AzureResourceProvider : IAzResourceProvider
 
         return new ArmClient(credential, subscriptionId, options);
     }
+
     public async Task<IDictionary<string, JsonElement>> GetChildResourcesAsync(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier resourceId, ChildResourceType childType, string? apiVersion, CancellationToken cancellationToken)
     {
         (string resourceType, string? apiVersion) resourceTypeApiVersionMapping = (resourceId.FullyQualifiedType, apiVersion);
@@ -83,6 +84,7 @@ public class AzureResourceProvider : IAzResourceProvider
             _ => throw new NotImplementedException()
         };
     }
+    
     public async Task<JsonElement> GetGenericResource(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier resourceId, string? apiVersion, CancellationToken cancellationToken)
     {
         (string resourceType, string? apiVersion) resourceTypeApiVersionMapping = (resourceId.FullyQualifiedType, apiVersion);
@@ -110,6 +112,7 @@ public class AzureResourceProvider : IAzResourceProvider
         }
 
     }
+    
     public static string GenerateBicepTemplate(IAzResourceProvider.AzResourceIdentifier resourceId, ResourceTypeReference resourceType, JsonElement resource)
     {
         var resourceIdentifier = new ResourceIdentifier(resourceId.FullyQualifiedId);

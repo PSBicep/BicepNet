@@ -41,7 +41,6 @@ public partial class BicepNetBaseCommand : ILogger
                 break;
             case LogLevel.Information:
                 WriteVerbose(formatter(state, exception));
-                //WriteInformation(new InformationRecord(formatter(state, exception), name));
                 break;
             case LogLevel.Warning:
                 WriteWarning(formatter(state, exception));

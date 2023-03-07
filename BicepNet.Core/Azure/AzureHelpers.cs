@@ -22,6 +22,7 @@ public static class AzureHelpers
         }
         return resourceId;
     }
+
     public static string GetResourceFriendlyName(string id)
     {
         var resourceId = ValidateResourceId(id);
@@ -34,6 +35,7 @@ public static class AzureHelpers
         );
         return string.Format("{0}_{1}", fullyQualifiedType.Replace(@"/", "_"), fullyQualifiedName.Replace(@"/", "")).ToLowerInvariant();
     }
+
     // Private method originally copied from InsertResourceHandler.cs
     internal static IAzResourceProvider.AzResourceIdentifier? TryParseResourceId(string? resourceIdString)
     {
@@ -67,6 +69,7 @@ public static class AzureHelpers
 
         return null;
     }
+
     // Private method originally copied from InsertResourceHandler.cs
     internal static ResourceDeclarationSyntax CreateResourceSyntax(JsonElement resource, IAzResourceProvider.AzResourceIdentifier resourceId, ResourceTypeReference typeReference)
     {
@@ -107,6 +110,7 @@ public static class AzureHelpers
             SyntaxFactory.CreateToken(TokenType.Assignment),
             SyntaxFactory.CreateObject(properties));
     }
+    
     internal static SyntaxBase ConvertJsonElement(JsonElement element)
     {
         switch (element.ValueKind)
