@@ -14,10 +14,10 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public static void Publish(string inputFilePath, string targetModuleReference, bool noRestore = true) => 
-        joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference, noRestore));
+    public void Publish(string inputFilePath, string targetModuleReference) => 
+        joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference));
 
-    public static async Task PublishAsync(string inputFilePath, string targetModuleReference, bool noRestore = true)
+    public async Task PublishAsync(string inputFilePath, string targetModuleReference)
     {
         var inputPath = PathHelper.ResolvePath(inputFilePath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
@@ -26,17 +26,17 @@ public partial class BicepWrapper
         if (PathHelper.HasArmTemplateLikeExtension(inputUri))
         {
             // Publishing an ARM template file.
-            using var armTemplateStream = fileSystem.FileStream.Create(inputPath, FileMode.Open, FileAccess.Read);
+            using var armTemplateStream = fileSystem.FileStream.New(inputPath, FileMode.Open, FileAccess.Read);
             await PublishModuleAsync(moduleReference, armTemplateStream);
             return;
         }
 
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
-        var compilation = new Compilation(featureProvider, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProvider, bicepAnalyzer);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, bicepAnalyzer);
         if (LogDiagnostics(compilation))
         {
             var stream = new MemoryStream();
-            new TemplateEmitter(compilation.GetEntrypointSemanticModel(), new EmitterSettings(featureProvider)).Emit(stream);
+            new TemplateEmitter(compilation.GetEntrypointSemanticModel()).Emit(stream);
 
             stream.Position = 0;
             await PublishModuleAsync(moduleReference, stream);
@@ -44,7 +44,7 @@ public partial class BicepWrapper
         }
     }
 
-    private static ModuleReference ValidateReference(string targetModuleReference, Uri targetModuleUri)
+    private ModuleReference ValidateReference(string targetModuleReference, Uri targetModuleUri)
     {
         if (!moduleDispatcher.TryGetModuleReference(targetModuleReference, targetModuleUri, out var moduleReference, out var failureBuilder))
         {
@@ -62,7 +62,7 @@ public partial class BicepWrapper
         return moduleReference;
     }
 
-    private static async Task PublishModuleAsync(ModuleReference target, Stream stream)
+    private async Task PublishModuleAsync(ModuleReference target, Stream stream)
     {
         try
         {

@@ -3,38 +3,36 @@ using System.Management.Automation;
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace BicepNet.PS
+namespace BicepNet.PS.LoadContext;
+
+public class BicepNetModuleInitializer : IModuleAssemblyInitializer
 {
-    public class BicepNetModuleInitializer : IModuleAssemblyInitializer
+    private static string s_binBasePath = Path.GetFullPath(
+        Path.Combine(
+            Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+            ".."));
+
+    private static string s_binCommonPath = Path.Combine(s_binBasePath, "Bicep");
+
+    private static string s_binCorePath = Path.Join(s_binBasePath, "Module.NetCore");
+
+    public void OnImport()
     {
-        private static string s_binBasePath = Path.GetFullPath(
-            Path.Combine(
-                Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-                ".."));
+        AssemblyLoadContext.Default.Resolving += ResolveAssembly_NetCore;
+    }
 
-        private static string s_binCommonPath = Path.Combine(s_binBasePath, "Bicep");
-
-        private static string s_binCorePath = Path.Join(s_binBasePath, "Module.NetCore");
-
-        public void OnImport()
+    private static Assembly ResolveAssembly_NetCore(
+        AssemblyLoadContext assemblyLoadContext,
+        AssemblyName assemblyName)
+    {
+        // In .NET Core, PowerShell deals with assembly probing so our logic is much simpler
+        // We only care about our Engine assembly
+        if (!assemblyName.Name.Equals("BicepNet.Core"))
         {
-            AssemblyLoadContext.Default.Resolving += ResolveAssembly_NetCore;
+            return null;
         }
 
-        private static Assembly ResolveAssembly_NetCore(
-            AssemblyLoadContext assemblyLoadContext,
-            AssemblyName assemblyName)
-        {
-            // In .NET Core, PowerShell deals with assembly probing so our logic is much simpler
-            // We only care about our Engine assembly
-            if (!assemblyName.Name.Equals("BicepNet.Core"))
-            {
-                return null;
-            }
-
-            // Now load the Engine assembly through the dependency ALC, and let it resolve further dependencies automatically
-            return DependencyAssemblyLoadContext.GetForDirectory(s_binCommonPath).LoadFromAssemblyName(assemblyName);
-        }
-
+        // Now load the Engine assembly through the dependency ALC, and let it resolve further dependencies automatically
+        return DependencyAssemblyLoadContext.GetForDirectory(s_binCommonPath).LoadFromAssemblyName(assemblyName);
     }
 }

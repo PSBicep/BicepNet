@@ -231,3 +231,5 @@ project.lock.json
 #####
 
 BicepNet.PS.zip
+BicepNet.Core/Properties/launchSettings.json
+BicepNet.CLI/Properties/launchSettings.json

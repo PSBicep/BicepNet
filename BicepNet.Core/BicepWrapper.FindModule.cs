@@ -18,7 +18,7 @@ public partial class BicepWrapper
     /// <summary>
     /// Find modules in registries by using a specific endpoints or by seraching a bicep file.
     /// </summary>
-    public static IList<BicepRepository> FindModules(string inputString, bool isRegistryEndpoint)
+    public IList<BicepRepository> FindModules(string inputString, bool isRegistryEndpoint)
     {
         List<string> endpoints = new();
 
@@ -50,7 +50,7 @@ public partial class BicepWrapper
     /// <summary>
     /// Find modules in registries by using endpoints restored to cache.
     /// </summary>
-    public static IList<BicepRepository> FindModules()
+    public IList<BicepRepository> FindModules()
     {
         List<string> endpoints = new();
 
@@ -66,7 +66,7 @@ public partial class BicepWrapper
         return FindModulesByEndpoints(endpoints);
     }
 
-    private static IList<BicepRepository> FindModulesByEndpoints(IList<string> endpoints)
+    private IList<BicepRepository> FindModulesByEndpoints(IList<string> endpoints)
     {
         if (endpoints.Count > 0)
         {
@@ -111,10 +111,10 @@ public partial class BicepWrapper
                     {
                         var artifact = repository.GetArtifact(moduleManifest.Digest);
                         var tags = artifact.GetTagPropertiesCollection();
-                        
+
                         List<BicepRepositoryModuleTag> tagList = new ();
                         // All artifacts don't have tags, but the tags variable will not be null because of the pageable
-                        // This means we can't compare null,
+                        // This means we can't compare null
                         try
                         {
                             foreach (var tag in tags)
@@ -129,7 +129,7 @@ public partial class BicepWrapper
                                 ));
                             }
                         } // When there are no tags, we cannot enumerate null - disregard this error and continue
-                        catch (InvalidOperationException ex) when (ex.TargetSite?.Name == "EnumerateArray") {
+                        catch (InvalidOperationException ex) when (ex.TargetSite?.Name == "EnumerateArray" || ex.TargetSite?.Name == "ThrowJsonElementWrongTypeException") {
                             logger?.LogInformation("No tags found for manifest with digest {moduleManifest.Digest}", moduleManifest.Digest);
                         }
 
@@ -176,6 +176,7 @@ public partial class BicepWrapper
                 logger?.LogError(ex, "Could not get modules from endpoint {endpoint}!", endpoint);
             }
         }
+
         return repos;
     }
 }

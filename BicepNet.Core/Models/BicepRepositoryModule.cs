@@ -21,8 +21,7 @@ public class BicepRepositoryModule
         UpdatedOn = updatedOn;
     }
 
+    // Return a string of comma-separated tags or 'null'
     public override string ToString()
-    {
-        return Tags.Any() ? string.Join(", ", Tags.OrderByDescending(t => t.UpdatedOn).Select(t => t.ToString())) : "null";
-    }
+        => Tags.Any() ? string.Join(", ", Tags.OrderByDescending(t => t.UpdatedOn).Select(t => t.ToString())) : "null";
 }

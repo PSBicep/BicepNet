@@ -1,5 +1,4 @@
-﻿using BicepNet.Core;
-using System.Management.Automation;
+﻿using System.Management.Automation;
 
 namespace BicepNet.PS.Commands;
 
@@ -16,7 +15,7 @@ public class ConvertBicepNetResourceToBicep : BicepNetBaseCommand
 
     protected override void ProcessRecord()
     {
-        var result = BicepWrapper.ConvertResourceToBicep(ResourceId, ResourceBody);
+        var result = bicepWrapper.ConvertResourceToBicep(ResourceId, ResourceBody);
         WriteObject(result);
     }
 }

@@ -19,7 +19,7 @@
     CompanyName          = 'simonw.se'
 
     # Copyright statement for this module
-    Copyright            = '(c) 2021 Simon Wåhlin. All rights reserved.'
+    Copyright            = '(c) 2023 Simon Wåhlin. All rights reserved.'
 
     # Description of the functionality provided by this module
     Description = 'A thin wrapper around bicep that will load all Bicep assemblies in a separate context to avoid conflicts with other modules. 

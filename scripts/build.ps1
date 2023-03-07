@@ -10,7 +10,10 @@ param(
     $Full,
 
     [switch]
-    $ClearNugetCache
+    $ClearNugetCache,
+
+    [switch]
+    $PublishArtifact
 )
 
 $netcoreversion = 'net6.0'
@@ -82,4 +85,6 @@ if($Version) {
 
 Move-Item "$outPath/Bicep/Microsoft.Extensions.Logging.Abstractions.dll" "$outPath/Module.NetCore/" -ErrorAction 'Ignore'
 
-Compress-Archive -Path $outPath -DestinationPath "$ProjectRoot/BicepNet.PS.zip" -Force
+if($PublishArtifact) {
+    Compress-Archive -Path $outPath -DestinationPath "$ProjectRoot/BicepNet.PS.zip" -Force
+}
