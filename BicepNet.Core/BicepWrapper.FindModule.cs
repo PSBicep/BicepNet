@@ -111,10 +111,10 @@ public partial class BicepWrapper
                     {
                         var artifact = repository.GetArtifact(moduleManifest.Digest);
                         var tags = artifact.GetTagPropertiesCollection();
-                        
+
                         List<BicepRepositoryModuleTag> tagList = new ();
                         // All artifacts don't have tags, but the tags variable will not be null because of the pageable
-                        // This means we can't compare null,
+                        // This means we can't compare null
                         try
                         {
                             foreach (var tag in tags)
@@ -129,7 +129,7 @@ public partial class BicepWrapper
                                 ));
                             }
                         } // When there are no tags, we cannot enumerate null - disregard this error and continue
-                        catch (InvalidOperationException ex) when (ex.TargetSite?.Name == "EnumerateArray") {
+                        catch (InvalidOperationException ex) when (ex.TargetSite?.Name == "EnumerateArray" || ex.TargetSite?.Name == "ThrowJsonElementWrongTypeException") {
                             logger?.LogInformation("No tags found for manifest with digest {moduleManifest.Digest}", moduleManifest.Digest);
                         }
 
