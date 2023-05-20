@@ -1,10 +1,9 @@
-using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
-using Azure.ResourceManager.Resources;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,32 +26,32 @@ internal static class ManagementGroupHelper
     public static async Task<IDictionary<string, JsonElement>> ListManagementGroupPoliciesAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
     {
         var result = new Dictionary<string, JsonElement>();
+
+    public static async Task<IEnumerable<string>> GetManagementGroupDescendantsAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
+    {
         var mg = armClient.GetManagementGroupResource(resourceIdentifier);
+        var list = mg.GetDescendantsAsync(cancellationToken: cancellationToken);
 
-        var collection = mg.GetManagementGroupPolicyDefinitions();
-        var list = collection.GetAllAsync(filter: "atExactScope()", cancellationToken: cancellationToken);
-        
-        JsonElement element;
+        var taskList = new List<string>();
 
-        var taskList = new Dictionary<string, Task<Response<ManagementGroupPolicyDefinitionResource>>>();
+
+        var subRegexOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant;
+        var subRegex = new Regex(@"^/subscriptions/(?<subId>[^/]+)$", subRegexOptions);
+       
         await foreach (var item in list)
         {
-            taskList.Add(item.Id.ToString(), item.GetAsync(cancellationToken: cancellationToken));
-        }
-
-        foreach (var id in taskList.Keys)
-        {
-            var policyItemResponse = await taskList[id];
-            var resourceId = AzureHelpers.ValidateResourceId(id);
-            if (policyItemResponse is null ||
-                policyItemResponse.GetRawResponse().ContentStream is not { } contentStream)
+            var subRegexMatch = subRegex.Match(item.Id.ToString());
+            if (subRegexMatch.Success)
             {
-                throw new Exception($"Failed to fetch resource from Id '{resourceId.FullyQualifiedId}'");
+                var subId = $"{mg.Id}/subscriptions/{subRegexMatch.Groups["subId"].Value}";
+                taskList.Add(subId);
+            } else
+            {
+                taskList.Add(item.Id.ToString());
             }
-            contentStream.Position = 0;
-            element = await JsonSerializer.DeserializeAsync<JsonElement>(contentStream, cancellationToken: cancellationToken);
-            result.Add(id, element);
+
         }
-        return result;
+        return taskList;
     }
+
 }

@@ -1,9 +1,8 @@
 ﻿using BicepNet.Core.Azure;
-using BicepNet.Core.Configuration;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,6 +23,7 @@ public partial class BicepWrapper
         }
         foreach ((string name, string template) in await Task.WhenAll(taskList))
         {
+            if(string.IsNullOrEmpty(name)) { continue; }
             result.Add(name, template);
         }
 
@@ -46,13 +46,18 @@ public partial class BicepWrapper
         try
         {
             var cancellationToken = new CancellationToken();
-            var config = configurationManager.GetConfiguration(new Uri(configurationPath ?? ""));
+            var config = configurationManager.GetConfiguration(new Uri(configurationPath ?? "inmemory://main.bicep"));
             resource = await azResourceProvider.GetGenericResource(config, resourceId, matchedType.ApiVersion, cancellationToken);
         }
         catch (Exception exception)
         {
             var message = $"Failed to fetch resource '{resourceId}' with API version {matchedType.ApiVersion}: {exception}";
             throw new Exception(message);
+        }
+
+        if(resource.ValueKind == JsonValueKind.Null)
+        {
+            return ("", "");
         }
 
         string template = GenerateBicepTemplate(resourceId, matchedType, resource, includeTargetScope: includeTargetScope);
