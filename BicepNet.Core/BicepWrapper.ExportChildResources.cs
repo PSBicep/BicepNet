@@ -1,5 +1,4 @@
 using BicepNet.Core.Azure;
-using BicepNet.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -18,9 +17,9 @@ public partial class BicepWrapper
 		var scopeResourceId = AzureHelpers.ValidateResourceId(scopeId);
 		var cancellationToken = new CancellationToken();
         var config = configurationManager.GetConfiguration(new Uri(configurationPath ?? "inmemory://main.bicep"));
-        var resourceDefinitions = await azResourceProvider.GetChildResourcesAsync(config, scopeResourceId, cancellationToken);
+        var resourceDefinitions = azResourceProvider.GetChildResourcesAsync(config, scopeResourceId, cancellationToken);
 
-        foreach (var (id, resource) in resourceDefinitions)
+        await foreach (var (id, resource) in resourceDefinitions)
         {
             var name = AzureHelpers.GetResourceFriendlyName(id);
             var resourceId = AzureHelpers.ValidateResourceId(id);

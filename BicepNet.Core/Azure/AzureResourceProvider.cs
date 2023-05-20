@@ -20,6 +20,7 @@ using BicepNet.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,82 +75,64 @@ public class AzureResourceProvider : IAzResourceProvider
         return new ArmClient(credential, subscriptionId, options);
     }
 
-    public async Task<IDictionary<string, JsonElement>> GetChildResourcesAsync(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier scopeResourceId, CancellationToken cancellationToken)
+    public async IAsyncEnumerable<(string, JsonElement)> GetChildResourcesAsync(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier scopeResourceId, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         (string resourceType, string? apiVersion) resourceTypeApiVersionMapping = (scopeResourceId.FullyQualifiedType, null);
 
-        if(string.IsNullOrEmpty(accessToken.Token))
+        if (string.IsNullOrEmpty(accessToken.Token) || accessToken.ExpiresOn.UtcDateTime < DateTimeOffset.UtcNow.AddMinutes(10))
         {
             await UpdateAccessTokenAsync(configuration, cancellationToken);
         }
 
         var armClient = CreateArmClient(configuration, scopeResourceId.subscriptionId, resourceTypeApiVersionMapping);
         var scopeResourceIdentifier = new ResourceIdentifier(scopeResourceId.FullyQualifiedId);
-
-        var result = new Dictionary<string, JsonElement>();
-
         
         switch ((string)scopeResourceIdentifier.ResourceType)
         {
             case "Microsoft.Management/managementGroups":
-                var resourceIdList = await ManagementGroupHelper.GetManagementGroupDescendantsAsync(scopeResourceIdentifier, armClient, cancellationToken);
-                foreach (string id in resourceIdList)
+                var resourceIdList = ManagementGroupHelper.GetManagementGroupDescendantsAsync(scopeResourceIdentifier, armClient, cancellationToken);
+                await foreach (string id in resourceIdList)
                 {
                     var resourceId = AzureHelpers.ValidateResourceId(id);
                     var resource = await GetGenericResource(configuration, resourceId, null, cancellationToken: cancellationToken);
-                    // If a resource was not found, don't add it to the result
-                    // this happens to subscriptions in child managementgroups when iterating TenantRootMg
-                    if (resource.ValueKind == JsonValueKind.Undefined) { continue; }
-
-                    // If resource is a management group, verify it is a direct descendant, oterwise ignore
-                    if(resourceId.FullyQualifiedType == "Microsoft.Management/managementGroups")
-                    {
-                        var parentId = resource.TryGetPropertyByPath("properties.details.parent.id");
-                        if (parentId is null ||  parentId.Value.GetString() != scopeResourceIdentifier.ToString())
-                        {
-                            continue;
-                        }
-
-                    }
-                    result.Add(id, resource);
+                    yield return (id, resource);
                 }
                 foreach (var entry in await PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken))
                 {
-                    result.Add(entry.Key, entry.Value);
+                    yield return (entry.Key, entry.Value);
                 }
                 foreach (var entry in await PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken))
                 {
-                    result.Add(entry.Key, entry.Value);
+                    yield return (entry.Key, entry.Value);
                 }
                 foreach (var entry in await PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken))
                 {
-                    result.Add(entry.Key, entry.Value);
+                    yield return (entry.Key, entry.Value);
                 }
                 break;
             case "Microsoft.Resources/subscriptions":
                 foreach (var entry in await PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken))
                 {
-                    result.Add(entry.Key, entry.Value);
+                    yield return (entry.Key, entry.Value);
                 }
                 foreach (var entry in await PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken))
                 {
-                    result.Add(entry.Key, entry.Value);
+                    yield return (entry.Key, entry.Value);
                 }
                 foreach (var entry in await PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken))
                 {
-                    result.Add(entry.Key, entry.Value);
+                    yield return (entry.Key, entry.Value);
                 }
                 break;
             case "Microsoft.Resources/resourceGroups":
 
                 foreach (var entry in await PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken))
                 {
-                    result.Add(entry.Key, entry.Value);
+                    yield return (entry.Key, entry.Value);
                 }
                 break;
         }
 
-        return result;
     }
     
     public async Task<JsonElement> GetGenericResource(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier resourceId, string? apiVersion, CancellationToken cancellationToken)

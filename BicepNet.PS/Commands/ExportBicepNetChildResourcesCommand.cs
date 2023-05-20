@@ -1,5 +1,3 @@
-using BicepNet.Core.Azure;
-using System;
 using System.Management.Automation;
 
 namespace BicepNet.PS.Commands;
@@ -11,13 +9,15 @@ public class ExportBicepNetChildResourceCommand : BicepNetBaseCommand
     [ValidateNotNullOrEmpty]
     public string ParentResourceId { get; set; }
 
-    [Parameter(Mandatory = true)]
-    [ValidateSet(new[] { "PolicyDefinitions", "PolicyInitiatives", "PolicyAssignments", "RoleDefinitions", "RoleAssignments", "Subscriptions", "ResourceGroups" })]
-    public string ResourceType { get; set; }
-
     protected override void ProcessRecord()
     {
-        var result = bicepWrapper.ExportChildResoures(ParentResourceId, (ChildResourceType)Enum.Parse(typeof(ChildResourceType), ResourceType));
-        WriteObject(result);
+        var result = bicepWrapper.ExportChildResoures(ParentResourceId);
+        foreach (var key in result.Keys)
+        {
+            var outputObject = new PSObject();
+            outputObject.Members.Add(new PSNoteProperty("name", key));
+            outputObject.Members.Add(new PSNoteProperty("template", result[key]));
+            WriteObject(outputObject);
+        }
     }
 }

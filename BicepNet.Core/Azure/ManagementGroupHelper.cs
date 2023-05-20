@@ -1,7 +1,9 @@
 using Azure.Core;
 using Azure.ResourceManager;
+using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -27,31 +29,22 @@ internal static class ManagementGroupHelper
     {
         var result = new Dictionary<string, JsonElement>();
 
-    public static async Task<IEnumerable<string>> GetManagementGroupDescendantsAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
+    public static async IAsyncEnumerable<string> GetManagementGroupDescendantsAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var mg = armClient.GetManagementGroupResource(resourceIdentifier);
         var list = mg.GetDescendantsAsync(cancellationToken: cancellationToken);
 
-        var taskList = new List<string>();
-
-
-        var subRegexOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant;
-        var subRegex = new Regex(@"^/subscriptions/(?<subId>[^/]+)$", subRegexOptions);
-       
         await foreach (var item in list)
         {
-            var subRegexMatch = subRegex.Match(item.Id.ToString());
-            if (subRegexMatch.Success)
+            if (item.ParentId != resourceIdentifier) { continue; }
+            if (item.ResourceType == "Microsoft.Management/managementGroups/subscriptions")
             {
-                var subId = $"{mg.Id}/subscriptions/{subRegexMatch.Groups["subId"].Value}";
-                taskList.Add(subId);
+                var subId = $"{mg.Id}/subscriptions/{item.Name}";
+                yield return subId;
             } else
             {
-                taskList.Add(item.Id.ToString());
+                yield return item.Id.ToString();
             }
-
         }
-        return taskList;
     }
-
 }
