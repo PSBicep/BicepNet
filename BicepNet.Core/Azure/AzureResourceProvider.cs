@@ -121,7 +121,7 @@ public class AzureResourceProvider : IAzResourceProvider
                 tasks = new()
                 {
                     PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
-                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken)
+                    RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken)
                 };
                 break;
         }
