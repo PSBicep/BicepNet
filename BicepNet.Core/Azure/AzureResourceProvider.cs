@@ -4,7 +4,6 @@ using Bicep.Core.Analyzers.Interfaces;
 using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
 using Bicep.Core.Diagnostics;
-using Bicep.Core.Extensions;
 using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Parsing;
@@ -86,7 +85,9 @@ public class AzureResourceProvider : IAzResourceProvider
 
         var armClient = CreateArmClient(configuration, scopeResourceId.subscriptionId, resourceTypeApiVersionMapping);
         var scopeResourceIdentifier = new ResourceIdentifier(scopeResourceId.FullyQualifiedId);
-        
+
+        List<Task<IDictionary<string, JsonElement>>> tasks = new();
+
         switch ((string)scopeResourceIdentifier.ResourceType)
         {
             case "Microsoft.Management/managementGroups":
@@ -97,42 +98,41 @@ public class AzureResourceProvider : IAzResourceProvider
                     var resource = await GetGenericResource(configuration, resourceId, null, cancellationToken: cancellationToken);
                     yield return (id, resource);
                 }
-                foreach (var entry in await PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken))
-                {
-                    yield return (entry.Key, entry.Value);
-                }
-                foreach (var entry in await PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken))
-                {
-                    yield return (entry.Key, entry.Value);
-                }
-                foreach (var entry in await PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken))
-                {
-                    yield return (entry.Key, entry.Value);
-                }
+
+                // Setup tasks of all dictionaries to loop through
+                tasks = new() {
+                    PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken)
+                };
                 break;
             case "Microsoft.Resources/subscriptions":
-                foreach (var entry in await PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken))
-                {
-                    yield return (entry.Key, entry.Value);
-                }
-                foreach (var entry in await PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken))
-                {
-                    yield return (entry.Key, entry.Value);
-                }
-                foreach (var entry in await PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken))
-                {
-                    yield return (entry.Key, entry.Value);
-                }
+                tasks = new() {
+                    PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken)
+                };
                 break;
             case "Microsoft.Resources/resourceGroups":
-
-                foreach (var entry in await PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken))
+                tasks = new()
                 {
-                    yield return (entry.Key, entry.Value);
-                }
+                    PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
+                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken)
+                };
                 break;
         }
-
+        // Return all resources found
+        foreach (var task in tasks)
+        {
+            foreach (var entry in await task)
+            {
+                yield return (entry.Key, entry.Value);
+            }
+        }
     }
     
     public async Task<JsonElement> GetGenericResource(RootConfiguration configuration, IAzResourceProvider.AzResourceIdentifier resourceId, string? apiVersion, CancellationToken cancellationToken)
@@ -150,6 +150,10 @@ public class AzureResourceProvider : IAzResourceProvider
                 return await PolicyHelper.GetPolicyDefinitionAsync(resourceIdentifier, armClient, cancellationToken);
             case "Microsoft.Resources/subscriptions":
                 return await SubscriptionHelper.GetSubscriptionAsync(resourceIdentifier, armClient, cancellationToken);
+            case "Microsoft.Authorization/roleAssignments":
+                return await RoleHelper.GetRoleAssignmentAsync(resourceIdentifier, armClient, cancellationToken);
+            case "Microsoft.Authorization/roleDefinitions":
+                return await RoleHelper.GetRoleDefinitionAsync(resourceIdentifier, armClient, cancellationToken);
             case "Microsoft.Management/managementGroups/subscriptions":
                 if (string.IsNullOrEmpty(accessToken.Token))
                 {
@@ -161,13 +165,12 @@ public class AzureResourceProvider : IAzResourceProvider
                 if (genericResourceResponse is null ||
                     genericResourceResponse.GetRawResponse().ContentStream is not { } contentStream)
                 {
-                    throw new Exception($"Failed to fetch resource from Id '{resourceId.FullyQualifiedId}'");
+                    throw new InvalidOperationException($"Failed to fetch resource from Id '{resourceId.FullyQualifiedId}'");
                 }
 
                 contentStream.Position = 0;
                 return await JsonSerializer.DeserializeAsync<JsonElement>(contentStream, cancellationToken: cancellationToken);
         }
-
     }
     
     public static string GenerateBicepTemplate(IAzResourceProvider.AzResourceIdentifier resourceId, ResourceTypeReference resourceType, JsonElement resource)

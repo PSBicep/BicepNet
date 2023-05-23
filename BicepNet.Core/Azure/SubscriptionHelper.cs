@@ -71,7 +71,7 @@ internal static class SubscriptionHelper
         var subResponse = await sub.GetAsync(cancellationToken: cancellationToken);
         if (subResponse is null || subResponse.GetRawResponse().ContentStream is not { } subContentStream)
         {
-            throw new Exception($"Failed to fetch resource from Id '{resourceIdentifier}'");
+            throw new InvalidOperationException($"Failed to fetch resource from Id '{resourceIdentifier}'");
         }
         subContentStream.Position = 0;
         return await JsonSerializer.DeserializeAsync<JsonElement>(subContentStream, cancellationToken: cancellationToken);

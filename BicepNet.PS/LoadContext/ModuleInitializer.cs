@@ -7,14 +7,12 @@ namespace BicepNet.PS.LoadContext;
 
 public class BicepNetModuleInitializer : IModuleAssemblyInitializer
 {
-    private static string s_binBasePath = Path.GetFullPath(
+    private static readonly string s_binBasePath = Path.GetFullPath(
         Path.Combine(
             Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
             ".."));
 
-    private static string s_binCommonPath = Path.Combine(s_binBasePath, "Bicep");
-
-    private static string s_binCorePath = Path.Join(s_binBasePath, "Module.NetCore");
+    private static readonly string s_binCommonPath = Path.Combine(s_binBasePath, "Bicep");
 
     public void OnImport()
     {

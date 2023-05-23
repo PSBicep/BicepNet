@@ -52,7 +52,7 @@ public partial class BicepWrapper
         catch (Exception exception)
         {
             var message = $"Failed to fetch resource '{resourceId}' with API version {matchedType.ApiVersion}: {exception}";
-            throw new Exception(message);
+            throw new InvalidOperationException(message);
         }
 
         if(resource.ValueKind == JsonValueKind.Null)

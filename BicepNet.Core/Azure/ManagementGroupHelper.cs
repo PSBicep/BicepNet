@@ -1,11 +1,9 @@
 using Azure.Core;
 using Azure.ResourceManager;
-using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -19,15 +17,11 @@ internal static class ManagementGroupHelper
         var mgResponse = await mg.GetAsync(cancellationToken: cancellationToken);
         if (mgResponse is null || mgResponse.GetRawResponse().ContentStream is not { } mgContentStream)
         {
-            throw new Exception($"Failed to fetch resource from Id '{resourceIdentifier}'");
+            throw new InvalidOperationException($"Failed to fetch resource from Id '{resourceIdentifier}'");
         }
         mgContentStream.Position = 0;
         return await JsonSerializer.DeserializeAsync<JsonElement>(mgContentStream, cancellationToken: cancellationToken);
     }
-
-    public static async Task<IDictionary<string, JsonElement>> ListManagementGroupPoliciesAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
-    {
-        var result = new Dictionary<string, JsonElement>();
 
     public static async IAsyncEnumerable<string> GetManagementGroupDescendantsAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, [EnumeratorCancellation] CancellationToken cancellationToken)
     {

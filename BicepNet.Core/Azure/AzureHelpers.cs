@@ -18,7 +18,7 @@ public static class AzureHelpers
         if (TryParseResourceId(id) is not { } resourceId)
         {
             var message = $"Failed to parse supplied resourceId \"{id}\".";
-            throw new Exception(message);
+            throw new InvalidOperationException(message);
         }
         return resourceId;
     }

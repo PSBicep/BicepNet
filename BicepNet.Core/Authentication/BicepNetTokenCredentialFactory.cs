@@ -94,7 +94,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
             }
             catch (Exception ex)
             {
-                throw new Exception("Could not parse token as JWT, please ensure it is provided in the correct format!", ex);
+                throw new InvalidOperationException("Could not parse token as JWT, please ensure it is provided in the correct format!", ex);
             }
         }
         else // User did not provide a token - interactive auth

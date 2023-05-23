@@ -32,7 +32,7 @@ public partial class BicepWrapper
         var compilation = await compilationService.CompileAsync(inputPath, noRestore);
         if (diagnosticLogger is not null && diagnosticLogger.ErrorCount > 0)
         {
-            throw new Exception($"Failed to compile template: {inputPath}");
+            throw new InvalidOperationException($"Failed to compile template: {inputPath}");
         }
 
         var stream = new MemoryStream();
@@ -47,7 +47,7 @@ public partial class BicepWrapper
 
         if (emitresult.Status != EmitStatus.Succeeded)
         {
-            throw new Exception($"Failed to emit bicep with error: ${emitresult.Status}");
+            throw new InvalidOperationException($"Failed to emit bicep with error: ${emitresult.Status}");
         }
 
         stream.Position = 0;
