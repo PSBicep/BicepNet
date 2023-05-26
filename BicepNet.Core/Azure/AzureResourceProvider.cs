@@ -105,7 +105,7 @@ public class AzureResourceProvider : IAzResourceProvider
                     PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
-                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken)
+                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, RoleDefinitionType.CustomRole, cancellationToken)
                 };
                 break;
             case "Microsoft.Resources/subscriptions":
@@ -114,7 +114,7 @@ public class AzureResourceProvider : IAzResourceProvider
                     PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
-                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken)
+                    RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, RoleDefinitionType.CustomRole, cancellationToken)
                 };
                 break;
             case "Microsoft.Resources/resourceGroups":
@@ -173,7 +173,7 @@ public class AzureResourceProvider : IAzResourceProvider
         }
     }
     
-    public static string GenerateBicepTemplate(IAzResourceProvider.AzResourceIdentifier resourceId, ResourceTypeReference resourceType, JsonElement resource)
+    public static string GenerateBicepTemplate(IAzResourceProvider.AzResourceIdentifier resourceId, ResourceTypeReference resourceType, JsonElement resource, bool includeTargetScope = false)
     {
         var resourceIdentifier = new ResourceIdentifier(resourceId.FullyQualifiedId);
         string targetScope = (string?)(resourceIdentifier.Parent?.ResourceType) switch
@@ -183,6 +183,10 @@ public class AzureResourceProvider : IAzResourceProvider
             "Microsoft.Management/managementGroups" => $"targetScope = 'managementGroup'{Environment.NewLine}",
             _ => $"targetScope = 'tenant'{Environment.NewLine}",
         };
+        if (resourceIdentifier.ResourceType == "Microsoft.Management/managementGroups" || resourceIdentifier.ResourceType == "Microsoft.Management/managementGroups/subscriptions")
+        {
+            targetScope = $"targetScope = 'tenant'{Environment.NewLine}";
+        }
 
         var resourceDeclaration = AzureHelpers.CreateResourceSyntax(resource, resourceId, resourceType);
 
@@ -193,7 +197,6 @@ public class AzureResourceProvider : IAzResourceProvider
             ImmutableArray<IDiagnostic>.Empty);
         var template = PrettyPrinter.PrintProgram(program, printOptions);
 
-        template = targetScope + template;
-        return template;
+        return includeTargetScope ? targetScope + template : template;
     }
 }

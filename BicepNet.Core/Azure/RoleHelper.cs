@@ -12,12 +12,12 @@ namespace BicepNet.Core.Azure;
 
 internal static class RoleHelper
 {
-    public static async Task<IDictionary<string, JsonElement>> ListRoleDefinitionsAsync(ResourceIdentifier scopeResourceId, ArmClient armClient, CancellationToken cancellationToken)
+    public static async Task<IDictionary<string, JsonElement>> ListRoleDefinitionsAsync(ResourceIdentifier scopeResourceId, ArmClient armClient, RoleDefinitionType roleDefinitionType, CancellationToken cancellationToken)
     {
         return (string)scopeResourceId.ResourceType switch
         {
-            "Microsoft.Management/managementGroups" => await ListManagementGroupRoleDefinitionAsync(scopeResourceId, armClient, cancellationToken),
-            "Microsoft.Resources/subscriptions" => await ListSubscriptionRoleDefinitionAsync(scopeResourceId, armClient, cancellationToken),
+            "Microsoft.Management/managementGroups" => await ListManagementGroupRoleDefinitionAsync(scopeResourceId, armClient, roleDefinitionType, cancellationToken),
+            "Microsoft.Resources/subscriptions" => await ListSubscriptionRoleDefinitionAsync(scopeResourceId, armClient, roleDefinitionType, cancellationToken),
             _ => throw new InvalidOperationException($"Failed to list RoleDefinitions on scope '{scopeResourceId}' with type '{scopeResourceId.ResourceType}")
         };
     }
@@ -33,11 +33,11 @@ internal static class RoleHelper
         };
     }
 
-    private static async Task<IDictionary<string, JsonElement>> ListManagementGroupRoleDefinitionAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
-        => await GetRoleDefinitionResourcesAsync(armClient.GetManagementGroupResource(resourceIdentifier).GetAuthorizationRoleDefinitions(), cancellationToken);
+    private static async Task<IDictionary<string, JsonElement>> ListManagementGroupRoleDefinitionAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, RoleDefinitionType roleDefinitionType, CancellationToken cancellationToken)
+        => await GetRoleDefinitionResourcesAsync(armClient.GetManagementGroupResource(resourceIdentifier).GetAuthorizationRoleDefinitions(), roleDefinitionType, cancellationToken);
 
-    private static async Task<IDictionary<string, JsonElement>> ListSubscriptionRoleDefinitionAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
-        => await GetRoleDefinitionResourcesAsync(armClient.GetSubscriptionResource(resourceIdentifier).GetAuthorizationRoleDefinitions(), cancellationToken);
+    private static async Task<IDictionary<string, JsonElement>> ListSubscriptionRoleDefinitionAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, RoleDefinitionType roleDefinitionType, CancellationToken cancellationToken)
+        => await GetRoleDefinitionResourcesAsync(armClient.GetSubscriptionResource(resourceIdentifier).GetAuthorizationRoleDefinitions(), roleDefinitionType, cancellationToken);
     
     private static async Task<IDictionary<string, JsonElement>> ListManagementGroupRoleAssignmentsAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
         => await GetRoleAssignmentResourcesAsync(armClient.GetManagementGroupResource(resourceIdentifier).GetRoleAssignments(), cancellationToken);
@@ -54,7 +54,7 @@ internal static class RoleHelper
     private static async Task<IDictionary<string, JsonElement>> GetRoleAssignmentResourcesAsync(RoleAssignmentCollection collection, CancellationToken cancellationToken)
     {
         var result = new Dictionary<string, JsonElement>();
-        var list = collection.GetAllAsync(filter: "atExactScope()", cancellationToken: cancellationToken);
+        var list = collection.GetAllAsync(filter: "atScope()", cancellationToken: cancellationToken);
 
         JsonElement element;
 
@@ -81,10 +81,10 @@ internal static class RoleHelper
         return result;
     }
 
-    private static async Task<IDictionary<string, JsonElement>> GetRoleDefinitionResourcesAsync(AuthorizationRoleDefinitionCollection collection, CancellationToken cancellationToken)
+    private static async Task<IDictionary<string, JsonElement>> GetRoleDefinitionResourcesAsync(AuthorizationRoleDefinitionCollection collection, RoleDefinitionType roleDefinitionType, CancellationToken cancellationToken)
     {
         var result = new Dictionary<string, JsonElement>();
-        var list = collection.GetAllAsync(filter: "atExactScope()", cancellationToken: cancellationToken);
+        var list = collection.GetAllAsync(filter: $"type eq '{roleDefinitionType}'", cancellationToken: cancellationToken);
 
         JsonElement element;
 

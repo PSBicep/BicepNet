@@ -60,7 +60,7 @@ public partial class BicepWrapper
             return ("", "");
         }
 
-        string template = GenerateBicepTemplate(resourceId, matchedType, resource, includeTargetScope: includeTargetScope);
+        string template = AzureResourceProvider.GenerateBicepTemplate(resourceId, matchedType, resource, includeTargetScope: includeTargetScope);
         template = RewriteBicepTemplate(template);
         var name = AzureHelpers.GetResourceFriendlyName(id);
 
