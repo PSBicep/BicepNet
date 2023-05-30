@@ -67,6 +67,20 @@ public static class AzureHelpers
                 rgRegexMatch.Groups["subId"].Value);
         }
 
+        var subRegexOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant;
+        var subRegex = new Regex(@"^/subscriptions/(?<subId>[^/]+)$", subRegexOptions);
+        var subRegexMatch = subRegex.Match(resourceIdString);
+        if (subRegexMatch.Success)
+        {
+            IAzResourceProvider.AzResourceIdentifier resource = new(
+                resourceIdString,
+                "Microsoft.Management/managementGroups/subscriptions",
+                subRegexMatch.Groups["subId"].Value,
+                subRegexMatch.Groups["subId"].Value,
+                subRegexMatch.Groups["subId"].Value);
+            return resource;
+        }
+
         return null;
     }
 
