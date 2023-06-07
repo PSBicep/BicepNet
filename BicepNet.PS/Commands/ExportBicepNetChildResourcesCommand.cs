@@ -9,15 +9,12 @@ public class ExportBicepNetChildResourceCommand : BicepNetBaseCommand
     [ValidateNotNullOrEmpty]
     public string ParentResourceId { get; set; }
 
+    [Parameter(Mandatory = false)]
+    public SwitchParameter IncludeTargetScope { get; set; }
+
     protected override void ProcessRecord()
     {
-        var result = bicepWrapper.ExportChildResoures(ParentResourceId);
-        foreach (var key in result.Keys)
-        {
-            var outputObject = new PSObject();
-            outputObject.Members.Add(new PSNoteProperty("name", key));
-            outputObject.Members.Add(new PSNoteProperty("template", result[key]));
-            WriteObject(outputObject);
-        }
+        var result = bicepWrapper.ExportChildResoures(ParentResourceId, includeTargetScope: IncludeTargetScope.IsPresent);
+        WriteObject(result);
     }
 }
