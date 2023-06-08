@@ -1,9 +1,8 @@
-using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
-using Azure.ResourceManager.Resources;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,41 +17,28 @@ internal static class ManagementGroupHelper
         var mgResponse = await mg.GetAsync(cancellationToken: cancellationToken);
         if (mgResponse is null || mgResponse.GetRawResponse().ContentStream is not { } mgContentStream)
         {
-            throw new Exception($"Failed to fetch resource from Id '{resourceIdentifier}'");
+            throw new InvalidOperationException($"Failed to fetch resource from Id '{resourceIdentifier}'");
         }
         mgContentStream.Position = 0;
         return await JsonSerializer.DeserializeAsync<JsonElement>(mgContentStream, cancellationToken: cancellationToken);
     }
 
-    public static async Task<IDictionary<string, JsonElement>> ListManagementGroupPoliciesAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, CancellationToken cancellationToken)
+    public static async IAsyncEnumerable<string> GetManagementGroupDescendantsAsync(ResourceIdentifier resourceIdentifier, ArmClient armClient, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var result = new Dictionary<string, JsonElement>();
         var mg = armClient.GetManagementGroupResource(resourceIdentifier);
+        var list = mg.GetDescendantsAsync(cancellationToken: cancellationToken);
 
-        var collection = mg.GetManagementGroupPolicyDefinitions();
-        var list = collection.GetAllAsync(filter: "atExactScope()", cancellationToken: cancellationToken);
-        
-        JsonElement element;
-
-        var taskList = new Dictionary<string, Task<Response<ManagementGroupPolicyDefinitionResource>>>();
         await foreach (var item in list)
         {
-            taskList.Add(item.Id.ToString(), item.GetAsync(cancellationToken: cancellationToken));
-        }
-
-        foreach (var id in taskList.Keys)
-        {
-            var policyItemResponse = await taskList[id];
-            var resourceId = AzureHelpers.ValidateResourceId(id);
-            if (policyItemResponse is null ||
-                policyItemResponse.GetRawResponse().ContentStream is not { } contentStream)
+            if (item.ParentId != resourceIdentifier) { continue; }
+            if (item.ResourceType == "Microsoft.Management/managementGroups/subscriptions")
             {
-                throw new Exception($"Failed to fetch resource from Id '{resourceId.FullyQualifiedId}'");
+                var subId = $"{mg.Id}/subscriptions/{item.Name}";
+                yield return subId;
+            } else
+            {
+                yield return item.Id.ToString();
             }
-            contentStream.Position = 0;
-            element = await JsonSerializer.DeserializeAsync<JsonElement>(contentStream, cancellationToken: cancellationToken);
-            result.Add(id, element);
         }
-        return result;
     }
 }

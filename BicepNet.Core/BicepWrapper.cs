@@ -124,7 +124,7 @@ public partial class BicepWrapper
     {
         if (compilation is null)
         {
-            throw new Exception("Compilation is null. A compilation must exist before logging the diagnostics.");
+            throw new InvalidOperationException("Compilation is null. A compilation must exist before logging the diagnostics.");
         }
 
         return LogDiagnostics(compilation.GetAllDiagnosticsByBicepFile());

@@ -18,7 +18,7 @@ public static class AzureHelpers
         if (TryParseResourceId(id) is not { } resourceId)
         {
             var message = $"Failed to parse supplied resourceId \"{id}\".";
-            throw new Exception(message);
+            throw new InvalidOperationException(message);
         }
         return resourceId;
     }
@@ -65,6 +65,20 @@ public static class AzureHelpers
                 rgRegexMatch.Groups["rgName"].Value,
                 rgRegexMatch.Groups["rgName"].Value,
                 rgRegexMatch.Groups["subId"].Value);
+        }
+
+        var subRegexOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant;
+        var subRegex = new Regex(@"^/subscriptions/(?<subId>[^/]+)$", subRegexOptions);
+        var subRegexMatch = subRegex.Match(resourceIdString);
+        if (subRegexMatch.Success)
+        {
+            IAzResourceProvider.AzResourceIdentifier resource = new(
+                resourceIdString,
+                "Microsoft.Management/managementGroups/subscriptions",
+                subRegexMatch.Groups["subId"].Value,
+                subRegexMatch.Groups["subId"].Value,
+                subRegexMatch.Groups["subId"].Value);
+            return resource;
         }
 
         return null;

@@ -27,7 +27,7 @@ public class SetBicepNetCredentialCommand : BicepNetBaseCommand
                 bicepWrapper.SetAuthentication(null, TenantId);
                 break;
             default:
-                throw new Exception("Not a valid parameter set!");
+                throw new InvalidOperationException("Not a valid parameter set!");
         }
     }
 }

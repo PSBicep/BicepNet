@@ -19,7 +19,7 @@ internal static class BicepHelper
         {
             var message = $"Failed to find a Bicep type definition for resource of type \"{fullyQualifiedType}\".";
             logger?.LogCritical("{message}", message);
-            throw new Exception(message);
+            throw new InvalidOperationException(message);
         }
 
         return matchedType;
