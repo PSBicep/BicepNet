@@ -20,8 +20,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Threading" Version="17.6.40" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.0-preview.3.23174.8" />
-    <PackageReference Include="System.Text.Encodings.Web" Version="8.0.0-preview.3.23174.8" />
   </ItemGroup>
 
   <ItemGroup>
