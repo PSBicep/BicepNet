@@ -103,6 +103,7 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
         return configuration;
     }
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S125:Sections of code should not be commented out", Justification = "Keeping comments of overridden methods in separate partial class.")]
     //private RootConfiguration GetDefaultConfiguration() => IConfigurationManager.GetBuiltInConfiguration();
 
     private (RootConfiguration?, DiagnosticBuilder.DiagnosticBuilderDelegate?) LoadConfiguration(Uri configurationUri)

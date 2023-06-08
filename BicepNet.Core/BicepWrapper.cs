@@ -63,7 +63,6 @@ public partial class BicepWrapper
 
     public BicepWrapper(ILogger bicepLogger)
     {
-        BicepDeploymentsInterop.Initialize();
         services = new ServiceCollection()
             .AddBicepNet(bicepLogger)
             .BuildServiceProvider();
@@ -77,7 +76,7 @@ public partial class BicepWrapper
         moduleDispatcher = services.GetRequiredService<IModuleDispatcher>();
         moduleRegistryProvider = services.GetRequiredService<IModuleRegistryProvider>();
         tokenCredentialFactory = services.GetRequiredService<BicepNetTokenCredentialFactory>();
-        tokenCredentialFactory.logger = services.GetRequiredService<ILogger>();
+        tokenCredentialFactory.Logger = services.GetRequiredService<ILogger>();
         fileResolver = services.GetRequiredService<IFileResolver>();
         fileSystem = services.GetRequiredService<IFileSystem>();
         configurationManager = services.GetRequiredService<BicepNetConfigurationManager>();

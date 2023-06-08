@@ -66,7 +66,7 @@ public partial class BicepWrapper
     {
         try
         {
-            await moduleDispatcher.PublishModule(target, stream);
+            await moduleDispatcher.PublishModule(target, stream, null);
         }
         catch (ExternalModuleException exception)
         {
