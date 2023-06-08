@@ -16,7 +16,7 @@ param(
     $PublishArtifact
 )
 
-$netcoreversion = 'net6.0'
+$netcoreversion = 'net7.0'
 
 $ProjectRoot = "$PSScriptRoot/.."
 $outPath = "$ProjectRoot/out/BicepNet.PS"
@@ -40,7 +40,7 @@ if ($Full) {
     dotnet build-server shutdown
     dotnet clean
 }
-dotnet publish -c $Configuration
+dotnet publish -c $Configuration -f $netcoreversion
 Pop-Location
 
 $Path = "$ProjectRoot/BicepNet.PS"

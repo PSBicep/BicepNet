@@ -22,6 +22,8 @@ using IOFileSystem = System.IO.Abstractions.FileSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using BicepNet.Core.Configuration;
+using Bicep.Cli;
+using System;
 
 namespace BicepNet.Core;
 
@@ -55,6 +57,7 @@ public static class BicepNetExtensions
             .AddSingleton<Workspace>()
 
             .AddSingleton(bicepLogger)
+            .AddSingleton(new IOContext(Console.Out, Console.Error))
             .AddSingleton<IDiagnosticLogger, BicepDiagnosticLogger>()
             .AddSingleton<CompilationService>()
 

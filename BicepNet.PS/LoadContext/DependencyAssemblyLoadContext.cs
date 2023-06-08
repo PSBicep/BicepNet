@@ -30,8 +30,10 @@ public class DependencyAssemblyLoadContext : AssemblyLoadContext
         string assemblyFileName = $"{assemblyName.Name}.dll";
 
         // Make sure we allow other common PowerShell dependencies to be loaded by PowerShell
-        // But specifically exclude Newtonsoft.Json since we want to use a different version here
-        if (!assemblyName.Name.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase))
+        // But specifically exclude Newtonsoft.Json and System.Text.Json since we want to use a different version here
+        if (!assemblyName.Name.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase) &&
+            !assemblyName.Name.Equals("System.Text.Json", StringComparison.OrdinalIgnoreCase) &&
+            !assemblyName.Name.Equals("System.Text.Encoding.Web", StringComparison.OrdinalIgnoreCase))
         {
             string psHomeAsmPath = Path.Join(s_psHome, assemblyFileName);
             if (File.Exists(psHomeAsmPath))
