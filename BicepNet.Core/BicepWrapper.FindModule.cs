@@ -32,8 +32,6 @@ public partial class BicepWrapper
             logger?.LogInformation("Searching file {inputString} for endpoints", inputString);
             var inputUri = PathHelper.FilePathToFileUrl(inputString);
 
-            // Create separate configuration for the build, to account for custom rule changes
-            var buildConfiguration = configurationManager.GetConfiguration(inputUri);
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
 
             var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore());

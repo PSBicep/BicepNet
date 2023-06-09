@@ -14,7 +14,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
 {
     public static string Scope { get; } = "https://management.core.windows.net/.default";
     
-    internal ILogger? logger { get; set; }
+    internal ILogger? Logger { get; set; }
     internal TokenRequestContext TokenRequestContext { get; set; }
     internal TokenCredential? Credential { get; set; }
     internal bool InteractiveAuthentication { get; set; }
@@ -39,24 +39,18 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
 
     public TokenCredential CreateSingle(CredentialType credentialType, Uri authorityUri)
     {
-        switch (credentialType)
+        Credential = credentialType switch
         {
-            case CredentialType.Environment:
-                return Credential = new EnvironmentCredential(new() { AuthorityHost = authorityUri });
-            case CredentialType.ManagedIdentity:
-                return Credential = new ManagedIdentityCredential(options: new() { AuthorityHost = authorityUri });
-            case CredentialType.VisualStudio:
-                return Credential = new VisualStudioCredential(new() { AuthorityHost = authorityUri });
-            case CredentialType.VisualStudioCode:
-                return Credential = new VisualStudioCodeCredential(new() { AuthorityHost = authorityUri });
-            case CredentialType.AzureCLI:
-                // AzureCLICrediential does not accept options. Azure CLI has built-in cloud profiles so AuthorityHost is not needed.
-                return Credential = new AzureCliCredential();
-            case CredentialType.AzurePowerShell:
-                return Credential = new AzurePowerShellCredential(new() { AuthorityHost = authorityUri });
-            default:
-                throw new NotImplementedException($"Unexpected credential type '{credentialType}'.");
-        }
+            CredentialType.Environment => new EnvironmentCredential(new() { AuthorityHost = authorityUri }),
+            CredentialType.ManagedIdentity => new ManagedIdentityCredential(options: new() { AuthorityHost = authorityUri }),
+            CredentialType.VisualStudio => new VisualStudioCredential(new() { AuthorityHost = authorityUri }),
+            CredentialType.VisualStudioCode => new VisualStudioCodeCredential(new() { AuthorityHost = authorityUri }),
+            CredentialType.AzureCLI => new AzureCliCredential(),// AzureCLICrediential does not accept options. Azure CLI has built-in cloud profiles so AuthorityHost is not needed.
+            CredentialType.AzurePowerShell => new AzurePowerShellCredential(new() { AuthorityHost = authorityUri }),
+            _ => throw new NotImplementedException($"Unexpected credential type '{credentialType}'."),
+        };
+
+        return Credential;
     }
 
     internal void Clear()
@@ -65,12 +59,12 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
 
         if (Credential == null)
         {
-            logger?.LogInformation("No stored credential to clear.");
+            Logger?.LogInformation("No stored credential to clear.");
             return;
         }
 
         Credential = null;
-        logger?.LogInformation("Cleared stored credential.");
+        Logger?.LogInformation("Cleared stored credential.");
     }
 
     internal void SetToken(Uri activeDirectoryAuthorityUri, string? token = null, string? tenantId = null)
@@ -78,7 +72,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
         // User provided a token
         if (!string.IsNullOrWhiteSpace(token))
         {
-            logger?.LogInformation("Token provided as authentication.");
+            Logger?.LogInformation("Token provided as authentication.");
             InteractiveAuthentication = false;
 
             // Try to parse JWT for expiry date
@@ -89,7 +83,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
                 var tokenExp = jwtSecurityToken.Claims.First(claim => claim.Type.Equals("exp")).Value;
                 var expDateTime = DateTimeOffset.FromUnixTimeSeconds(long.Parse(tokenExp));
 
-                logger?.LogInformation("Successfully parsed token, expiration date is {expDateTime}.", expDateTime);
+                Logger?.LogInformation("Successfully parsed token, expiration date is {expDateTime}.", expDateTime);
                 Credential = new ExternalTokenCredential(token, expDateTime);
             }
             catch (Exception ex)
@@ -99,7 +93,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
         }
         else // User did not provide a token - interactive auth
         {
-            logger?.LogInformation("Opening interactive browser for authentication...");
+            Logger?.LogInformation("Opening interactive browser for authentication...");
 
             // Since we cannot change the method signatures of the ITokenCredentialFactory, set properties and check them within the class
             InteractiveAuthentication = true;
@@ -110,7 +104,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
             // The token is then stored in the Credential object, here we don't care about the return value
             GetToken();
 
-            logger?.LogInformation("Authentication successful.");
+            Logger?.LogInformation("Authentication successful.");
         }
     }
 

@@ -193,10 +193,9 @@ public class AzureResourceProvider : IAzResourceProvider
         var printOptions = new PrettyPrintOptions(NewlineOption.LF, IndentKindOption.Space, 2, false);
         var program = new ProgramSyntax(
             new[] { resourceDeclaration },
-            SyntaxFactory.CreateToken(TokenType.EndOfFile),
-            ImmutableArray<IDiagnostic>.Empty);
-        var template = PrettyPrinter.PrintProgram(program, printOptions);
-
+            SyntaxFactory.CreateToken(TokenType.EndOfFile));
+        var template = PrettyPrinter.PrintProgram(program, printOptions, EmptyDiagnosticLookup.Instance, EmptyDiagnosticLookup.Instance);
+        
         return includeTargetScope ? targetScope + template : template;
     }
 }

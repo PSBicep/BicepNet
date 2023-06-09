@@ -26,7 +26,7 @@
 BicepNet is developed for the Bicep PowerShell module but could be used for any other project where you want to leverage Bicep functionality in PowerShell or .NET.'
 
     # Minimum version of the PowerShell engine required by this module
-    PowerShellVersion    = '7.2'
+    PowerShellVersion    = '7.3'
 
     # Minimum version of Microsoft .NET Framework required by this module. This prerequisite is valid for the PowerShell Desktop edition only.
     # DotNetFrameworkVersion = '4.6.1'

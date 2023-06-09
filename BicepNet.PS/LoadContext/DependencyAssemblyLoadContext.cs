@@ -1,6 +1,9 @@
+using Microsoft.WindowsAzure.ResourceStack.Common.Extensions;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -9,8 +12,8 @@ namespace BicepNet.PS.LoadContext;
 public class DependencyAssemblyLoadContext : AssemblyLoadContext
 {
     private static readonly string s_psHome = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-
-    private static readonly ConcurrentDictionary<string, DependencyAssemblyLoadContext> s_dependencyLoadContexts = new ConcurrentDictionary<string, DependencyAssemblyLoadContext>();
+    
+    private static readonly ConcurrentDictionary<string, DependencyAssemblyLoadContext> s_dependencyLoadContexts = new();
 
     internal static DependencyAssemblyLoadContext GetForDirectory(string directoryPath)
     {
@@ -30,8 +33,10 @@ public class DependencyAssemblyLoadContext : AssemblyLoadContext
         string assemblyFileName = $"{assemblyName.Name}.dll";
 
         // Make sure we allow other common PowerShell dependencies to be loaded by PowerShell
-        // But specifically exclude Newtonsoft.Json since we want to use a different version here
-        if (!assemblyName.Name.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase))
+        // But specifically exclude certain assemblies like Newtonsoft.Json and System.Text.Json since we want to use different versions here for Bicep
+        if (!assemblyName.Name.Equals("Newtonsoft.Json", StringComparison.OrdinalIgnoreCase) &&
+            !assemblyName.Name.Equals("System.Text.Json", StringComparison.OrdinalIgnoreCase) &&
+            !assemblyName.Name.Equals("System.Text.Encodings.Web", StringComparison.OrdinalIgnoreCase))
         {
             string psHomeAsmPath = Path.Join(s_psHome, assemblyFileName);
             if (File.Exists(psHomeAsmPath))

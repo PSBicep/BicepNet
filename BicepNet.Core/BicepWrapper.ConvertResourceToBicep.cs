@@ -48,7 +48,7 @@ public partial class BicepWrapper
                 model => new TypeCasingFixerRewriter(model),
                 model => new ReadOnlyPropertyRemovalRewriter(model));
         var printOptions = new PrettyPrintOptions(NewlineOption.LF, IndentKindOption.Space, 2, false);
-        template = PrettyPrinter.PrintProgram(bicepFile.ProgramSyntax, printOptions);
+        template = PrettyPrinter.PrintProgram(bicepFile.ProgramSyntax, printOptions, EmptyDiagnosticLookup.Instance, EmptyDiagnosticLookup.Instance);
 
         return template;
     }

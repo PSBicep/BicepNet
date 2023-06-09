@@ -117,7 +117,7 @@ public static class AzureHelpers
 
         return new ResourceDeclarationSyntax(
             new SyntaxBase[] { description, SyntaxFactory.NewlineToken, },
-            SyntaxFactory.CreateToken(TokenType.Identifier, "resource"),
+            SyntaxFactory.CreateIdentifierToken("resource"),
             SyntaxFactory.CreateIdentifier(Regex.Replace(resourceId.UnqualifiedName, "[^a-zA-Z]", "")),
             SyntaxFactory.CreateStringLiteral(typeReference.FormatName()),
             null,

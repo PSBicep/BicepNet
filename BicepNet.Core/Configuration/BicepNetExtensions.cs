@@ -22,6 +22,10 @@ using IOFileSystem = System.IO.Abstractions.FileSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using BicepNet.Core.Configuration;
+using Bicep.Cli;
+using System;
+using Bicep.Cli.Helpers;
+using Bicep.Core.TypeSystem;
 
 namespace BicepNet.Core;
 
@@ -31,30 +35,16 @@ public static class BicepNetExtensions
     {
         services
             .AddSingleton<BicepNetConfigurationManager>()
-
-            .AddSingleton<INamespaceProvider, DefaultNamespaceProvider>()
-            .AddSingleton<IAzResourceTypeLoader, AzResourceTypeLoader>()
-            .AddSingleton<IContainerRegistryClientFactory, ContainerRegistryClientFactory>()
-            .AddSingleton<ITemplateSpecRepositoryFactory, TemplateSpecRepositoryFactory>()
-            .AddSingleton<IModuleDispatcher, ModuleDispatcher>()
-            .AddSingleton<IModuleRegistryProvider, DefaultModuleRegistryProvider>()
-            .AddSingleton<ITokenCredentialFactory, TokenCredentialFactory>()
-            .AddSingleton<IFileResolver, FileResolver>()
-            .AddSingleton<IFileSystem, IOFileSystem>()
-            .AddSingleton<IConfigurationManager>(s => s.GetRequiredService<BicepNetConfigurationManager>())
-            .AddSingleton<IApiVersionProviderFactory, ApiVersionProviderFactory>()
-            .AddSingleton<IBicepAnalyzer, LinterAnalyzer>()
-            .AddSingleton<IFeatureProviderFactory, FeatureProviderFactory>()
-            .AddSingleton<ILinterRulesProvider, LinterRulesProvider>()
-
-            .AddSingleton<BicepCompiler>()
-            .AddSingleton<BicepDecompiler>()
+            .AddBicepCore()
+            .AddBicepDecompiler()
+            .AddBicepparamDecompiler()
 
             .AddSingleton<AzureResourceProvider>()
             .AddSingleton<IAzResourceProvider>(s => s.GetRequiredService<AzureResourceProvider>())
             .AddSingleton<Workspace>()
 
             .AddSingleton(bicepLogger)
+            .AddSingleton(new IOContext(Console.Out, Console.Error))
             .AddSingleton<IDiagnosticLogger, BicepDiagnosticLogger>()
             .AddSingleton<CompilationService>()
 
