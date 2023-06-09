@@ -11,8 +11,18 @@ using System.Text.RegularExpressions;
 
 namespace BicepNet.Core.Azure;
 
-public static class AzureHelpers
+public static partial class AzureHelpers
 {
+
+    [GeneratedRegex(@"^/subscriptions/(?<subId>[^/]+)/resourceGroups/(?<rgName>[^/]+)$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant)]
+    private static partial Regex ResourceGroupId();
+
+    [GeneratedRegex(@"^/subscriptions/(?<subId>[^/]+)$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant)]
+    private static partial Regex SubscriptionId();
+
+    [GeneratedRegex("[^a-zA-Z]")]
+    private static partial Regex NotAnsiLetter();
+
     public static IAzResourceProvider.AzResourceIdentifier ValidateResourceId(string id)
     {
         if (TryParseResourceId(id) is not { } resourceId)
@@ -54,9 +64,7 @@ public static class AzureHelpers
                 string.Empty);
         }
 
-        var rgRegexOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant;
-        var rgRegex = new Regex(@"^/subscriptions/(?<subId>[^/]+)/resourceGroups/(?<rgName>[^/]+)$", rgRegexOptions);
-        var rgRegexMatch = rgRegex.Match(resourceIdString);
+        var rgRegexMatch = ResourceGroupId().Match(resourceIdString);
         if (rgRegexMatch.Success)
         {
             return new(
@@ -67,9 +75,7 @@ public static class AzureHelpers
                 rgRegexMatch.Groups["subId"].Value);
         }
 
-        var subRegexOptions = RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant;
-        var subRegex = new Regex(@"^/subscriptions/(?<subId>[^/]+)$", subRegexOptions);
-        var subRegexMatch = subRegex.Match(resourceIdString);
+        var subRegexMatch = SubscriptionId().Match(resourceIdString);
         if (subRegexMatch.Success)
         {
             IAzResourceProvider.AzResourceIdentifier resource = new(
@@ -118,13 +124,14 @@ public static class AzureHelpers
         return new ResourceDeclarationSyntax(
             new SyntaxBase[] { description, SyntaxFactory.NewlineToken, },
             SyntaxFactory.CreateIdentifierToken("resource"),
-            SyntaxFactory.CreateIdentifier(Regex.Replace(resourceId.UnqualifiedName, "[^a-zA-Z]", "")),
+            SyntaxFactory.CreateIdentifier(NotAnsiLetter().Replace(resourceId.UnqualifiedName, "")),
             SyntaxFactory.CreateStringLiteral(typeReference.FormatName()),
             null,
             SyntaxFactory.CreateToken(TokenType.Assignment),
             SyntaxFactory.CreateObject(properties));
     }
     
+    // Private method originally copied from InsertResourceHandler.cs
     internal static SyntaxBase ConvertJsonElement(JsonElement element)
     {
         switch (element.ValueKind)
@@ -150,7 +157,10 @@ public static class AzureHelpers
                 {
                     return SyntaxFactory.CreatePositiveOrNegativeInteger(intValue);
                 }
-                return SyntaxFactory.CreateStringLiteral(element.ToString()!);
+
+                return SyntaxFactory.CreateFunctionCall(
+                        "json",
+                        SyntaxFactory.CreateStringLiteral(element.ToString()));
             case JsonValueKind.True:
                 return SyntaxFactory.CreateToken(TokenType.TrueKeyword);
             case JsonValueKind.False:
