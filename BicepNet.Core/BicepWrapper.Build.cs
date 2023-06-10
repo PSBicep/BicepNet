@@ -1,5 +1,6 @@
 using Bicep.Core.Emit;
 using Bicep.Core.FileSystem;
+using Bicep.Core.Semantics;
 using Bicep.Core.Workspaces;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,9 +12,9 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public IList<string> Build(string bicepPath, bool noRestore = false) => joinableTaskFactory.Run(() => BuildAsync(bicepPath, noRestore));
+    public IList<string> Build(string bicepPath, string usingPath = "", bool noRestore = false) => joinableTaskFactory.Run(() => BuildAsync(bicepPath, usingPath, noRestore));
 
-    public async Task<IList<string>> BuildAsync(string bicepPath, bool noRestore = false)
+    public async Task<IList<string>> BuildAsync(string bicepPath, string usingPath = "", bool noRestore = false)
     {
         var inputPath = PathHelper.ResolvePath(bicepPath);
         var features = featureProviderFactory.GetFeatureProvider(PathHelper.FilePathToFileUrl(inputPath));
@@ -32,7 +33,7 @@ public partial class BicepWrapper
         var compilation = await compilationService.CompileAsync(inputPath, noRestore);
         if (diagnosticLogger is not null && diagnosticLogger.ErrorCount > 0)
         {
-            throw new InvalidOperationException($"Failed to compile template: {inputPath}");
+            throw new InvalidOperationException($"Failed to compile file: {inputPath}");
         }
 
         var stream = new MemoryStream();
@@ -41,7 +42,7 @@ public partial class BicepWrapper
         EmitResult emitresult = fileKind switch
         {
             BicepSourceFileKind.BicepFile => new TemplateEmitter(compilation.GetEntrypointSemanticModel()).Emit(stream),
-            BicepSourceFileKind.ParamsFile => new ParametersEmitter(compilation.GetEntrypointSemanticModel()).Emit(stream),
+            BicepSourceFileKind.ParamsFile => EmitParamsFile(compilation, usingPath, stream),
             _ => throw new NotImplementedException($"Unexpected file kind '{fileKind}'"),
         };
 
@@ -56,5 +57,23 @@ public partial class BicepWrapper
         template.Add(result);
 
         return template;
+    }
+
+    private static EmitResult EmitParamsFile(Compilation compilation, string usingPath, Stream stream)
+    {
+        var bicepPath = PathHelper.ResolvePath(usingPath);
+        var paramsSemanticModel = compilation.GetEntrypointSemanticModel();
+        if (usingPath != "" && paramsSemanticModel.Root.TryGetBicepFileSemanticModelViaUsing(out var bicepSemanticModel, out _))
+        {
+            var bicepFileUsingPathUri = bicepSemanticModel.Root.FileUri;
+
+            if (bicepPath is not null && !bicepFileUsingPathUri.Equals(PathHelper.FilePathToFileUrl(bicepPath)))
+            {
+                throw new InvalidOperationException($"Bicep file {bicepPath} provided with templatePath option doesn't match the Bicep file {bicepSemanticModel.Root.Name} referenced by the using declaration in the parameters file");
+            }
+
+        }
+        var emitter = new ParametersEmitter(paramsSemanticModel);
+        return emitter.Emit(stream);
     }
 }

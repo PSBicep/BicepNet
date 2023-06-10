@@ -40,7 +40,6 @@ public partial class BicepWrapper
 
             stream.Position = 0;
             await PublishModuleAsync(moduleReference, stream);
-            return;
         }
     }
 
