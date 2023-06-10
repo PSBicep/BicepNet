@@ -1,24 +1,16 @@
 using Azure.Core;
 using Azure.ResourceManager;
-using Bicep.Core.Analyzers.Interfaces;
-using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
 using Bicep.Core.Diagnostics;
-using Bicep.Core.Features;
-using Bicep.Core.FileSystem;
 using Bicep.Core.Parsing;
 using Bicep.Core.PrettyPrint;
 using Bicep.Core.PrettyPrint.Options;
-using Bicep.Core.Registry;
 using Bicep.Core.Registry.Auth;
 using Bicep.Core.Resources;
-using Bicep.Core.Semantics.Namespaces;
 using Bicep.Core.Syntax;
 using Bicep.LanguageServer.Providers;
-using BicepNet.Core.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading;
@@ -28,27 +20,11 @@ namespace BicepNet.Core.Azure;
 public class AzureResourceProvider : IAzResourceProvider
 {
     private readonly ITokenCredentialFactory credentialFactory;
-    private readonly IFileResolver fileResolver;
-    private readonly IModuleDispatcher moduleDispatcher;
-    private readonly BicepNetConfigurationManager configurationManager;
-    private readonly IFeatureProviderFactory featureProviderFactory;
-    private readonly INamespaceProvider namespaceProvider;
-    private readonly IApiVersionProviderFactory apiVersionProviderFactory;
-    private readonly IBicepAnalyzer linterAnalyzer;
     private AccessToken accessToken;
 
-    public AzureResourceProvider(ITokenCredentialFactory credentialFactory, IFileResolver fileResolver,
-        IModuleDispatcher moduleDispatcher, BicepNetConfigurationManager configurationManager, IFeatureProviderFactory featureProviderFactory, INamespaceProvider namespaceProvider,
-        IApiVersionProviderFactory apiVersionProviderFactory, IBicepAnalyzer linterAnalyzer)
+    public AzureResourceProvider(ITokenCredentialFactory credentialFactory)
     {
         this.credentialFactory = credentialFactory;
-        this.fileResolver = fileResolver;
-        this.moduleDispatcher = moduleDispatcher;
-        this.configurationManager = configurationManager;
-        this.featureProviderFactory = featureProviderFactory;
-        this.namespaceProvider = namespaceProvider;
-        this.apiVersionProviderFactory = apiVersionProviderFactory;
-        this.linterAnalyzer = linterAnalyzer;
     }
 
     private async Task UpdateAccessTokenAsync(RootConfiguration configuration, CancellationToken cancellationToken)
@@ -195,7 +171,7 @@ public class AzureResourceProvider : IAzResourceProvider
             new[] { resourceDeclaration },
             SyntaxFactory.CreateToken(TokenType.EndOfFile));
         var template = PrettyPrinter.PrintProgram(program, printOptions, EmptyDiagnosticLookup.Instance, EmptyDiagnosticLookup.Instance);
-        
+
         return includeTargetScope ? targetScope + template : template;
     }
 }
