@@ -10,6 +10,7 @@ public class BuildBicepNetParamFileCommand : BicepNetBaseCommand
     public string Path { get; set; }
 
     [Parameter(Mandatory = false)]
+    [ValidateNotNullOrEmpty]
     public string TemplatePath { get; set; } = "";
 
     [Parameter()]

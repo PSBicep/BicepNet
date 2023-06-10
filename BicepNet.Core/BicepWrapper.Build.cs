@@ -33,7 +33,7 @@ public partial class BicepWrapper
         var compilation = await compilationService.CompileAsync(inputPath, noRestore);
         if (diagnosticLogger is not null && diagnosticLogger.ErrorCount > 0)
         {
-            throw new InvalidOperationException($"Failed to compile template: {inputPath}");
+            throw new InvalidOperationException($"Failed to compile file: {inputPath}");
         }
 
         var stream = new MemoryStream();
