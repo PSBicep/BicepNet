@@ -67,7 +67,7 @@ public partial class BicepWrapper
         {
             var bicepFileUsingPathUri = bicepSemanticModel.Root.FileUri;
 
-            if (bicepPath is { } && !bicepFileUsingPathUri.Equals(PathHelper.FilePathToFileUrl(bicepPath)))
+            if (bicepPath is not null && !bicepFileUsingPathUri.Equals(PathHelper.FilePathToFileUrl(bicepPath)))
             {
                 throw new InvalidOperationException($"Bicep file {bicepPath} provided with templatePath option doesn't match the Bicep file {bicepSemanticModel.Root.Name} referenced by the using declaration in the parameters file");
             }
