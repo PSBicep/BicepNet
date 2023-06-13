@@ -1,3 +1,4 @@
+using System;
 using System.Management.Automation;
 
 namespace BicepNet.PS.Commands;
@@ -18,19 +19,16 @@ public class FindBicepNetModuleCommand : BicepNetBaseCommand
 
     protected override void ProcessRecord()
     {
-        switch (ParameterSetName)
+        var result = ParameterSetName switch {
+            "Path" => bicepWrapper.FindModules(Path, false),
+            "Registry" => bicepWrapper.FindModules(Registry, true),
+            "Cache" => bicepWrapper.FindModules(),
+            _ => throw new InvalidOperationException("Invalid parameter set"),
+        };
+
+        foreach (var item in result)
         {
-            case "Path":
-                WriteObject(bicepWrapper.FindModules(Path, false));
-                break;
-            case "Registry":
-                WriteObject(bicepWrapper.FindModules(Registry, true));
-                break;
-            case "Cache":
-                WriteObject(bicepWrapper.FindModules());
-                break;
-            default:
-                break;
+            WriteObject(item);
         }
     }
 }
