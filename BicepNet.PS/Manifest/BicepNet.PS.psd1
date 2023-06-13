@@ -47,6 +47,7 @@ BicepNet is developed for the Bicep PowerShell module but could be used for any 
         'Export-BicepNetResource'
         'Export-BicepNetChildResource'
         'Find-BicepNetModule'
+        'Format-BicepNet'
         'Get-BicepNetAccessToken'
         'Get-BicepNetCachePath'
         'Get-BicepNetConfig'
