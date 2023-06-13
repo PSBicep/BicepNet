@@ -25,3 +25,7 @@ This is the repository for **BicepNet**, a thin wrapper around [Bicep](https://g
 | `1.0.2` | `0.4.412` |
 | `1.0.1` | `0.4.63` |
 | `1.0.0` | `0.4.63` |
+
+## Issues
+
+Issues is disabled in the BicepNet repository. Open an issue in [PSBicep/PSBicep](https://github.com/PSBicep/PSBicep/issues) for bug reports or feature requests.
