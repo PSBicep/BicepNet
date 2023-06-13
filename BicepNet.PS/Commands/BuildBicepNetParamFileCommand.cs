@@ -19,6 +19,9 @@ public class BuildBicepNetParamFileCommand : BicepNetBaseCommand
     protected override void ProcessRecord()
     {
         var result = bicepWrapper.Build(Path, TemplatePath, NoRestore.IsPresent);
-        WriteObject(result);
+        foreach (var item in result)
+        {
+            WriteObject(item);
+        }
     }
 }
