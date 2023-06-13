@@ -14,6 +14,7 @@ jobs:
         fetch-depth: 0
 
     - name: Upgrade to latest preview of powershell
+      shell: pwsh
       run: |
         Invoke-Expression "& { $(irm https://aka.ms/install-powershell.ps1) } -Quiet"
 
