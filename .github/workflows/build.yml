@@ -13,11 +13,23 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Upgrade to latest preview of powershell
+    - name: Update PowerShell from LTS
       shell: pwsh
       run: |
-        Invoke-Expression "& { $(irm https://aka.ms/install-powershell.ps1) } -Quiet"
-        $env:GITHUB_PATH = '/home/runner/.powershell:' + $env:GITHUB_PATH
+        # Most of the code is from https://aka.ms/install-powershell.ps1 but adapted for GITHUB_PATH
+        $Destination = "~/.powershell"
+        if (-not (Test-Path -Path $Destination)) { New-Item -ItemType Directory -Path $Destination }
+
+        Invoke-Expression "& { $(irm https://aka.ms/install-powershell.ps1) } -Destination $Destination"
+        $TargetPath = Join-Path -Path $Destination -ChildPath "pwsh"
+        $Symlink = "/usr/bin/pwsh"
+
+        $Uid = id -u
+        if ($Uid -ne "0") { $SUDO = "sudo" } else { $SUDO = "" }
+        # Make symbolic link point to installed path
+        & $SUDO ln -fs $TargetPath $Symlink
+
+        if ($LASTEXITCODE -ne 0) { throw "Could not add to GITHUB_PATH: failed to make '$Symlink' point to '$TargetPath'." }
 
     - name: Set PSModulePath
       shell: pwsh
@@ -57,7 +69,7 @@ jobs:
 
     - name: Build module
       shell: pwsh
-      run: ./scripts/build.ps1 -Version "${{steps.gitversion.outputs.LegacySemVerPadded}}"
+      run: ./scripts/build.ps1 -Version "${{steps.gitversion.outputs.LegacySemVerPadded}}" -PublishArtifact
 
     - name: Publish build artifacts
       uses: actions/upload-artifact@v3
