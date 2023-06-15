@@ -69,7 +69,7 @@ jobs:
 
     - name: Build module
       shell: pwsh
-      run: ./scripts/build.ps1 -Version "${{steps.gitversion.outputs.LegacySemVerPadded}}"
+      run: ./scripts/build.ps1 -Version "${{steps.gitversion.outputs.LegacySemVerPadded}}" -PublishArtifact
 
     - name: Publish build artifacts
       uses: actions/upload-artifact@v3
