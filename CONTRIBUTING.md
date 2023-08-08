@@ -22,10 +22,18 @@ Any class needed for data returned to BicepNet.PS needs to be defined in the Bic
 
 ## Setting up a dev-environment
 
-### Prerequisites
+The project ships with a dev container, it should contain everything needed.  
+The container build process will clone and build Bicep which takes some time, please be patient.
+
+**Known Issues:**
+* There might be an error stating that it failed to restore projects. This is because the language servers tries to restore the project before the dependencies are downloaded. Just ignore the error and restart the container.  
+
+To with with BicepNet locally, follow the instructions below:
+
+### Prerequisites for local setup
 
 1. git ([Download](https://git-scm.com/downloads))
-1. dotnet 5 SDK ([Download](https://dotnet.microsoft.com/download))
+1. dotnet 7 SDK ([Download](https://dotnet.microsoft.com/download))
 1. Visual Studio Code ([Download](https://code.visualstudio.com/download))
 1. (optional) gitversion ([Download](https://gitversion.net/docs/usage/cli/installation))
 
@@ -41,10 +49,11 @@ To checkout a specific version of bicep use parameter -bicepVersion and a value 
 For example:  
 `.\scripts\Dependencies.ps1 -bicepVersion v0.4.451`  
 If no version is specified, the version specified in the file .bicepVersion will be used.  
+1. Build the project  
+
 Now you are ready to start coding!
 
 ### Build
 To build BicepNet, run the script scripts/build.ps1.  
-This will create the folder 'out' containing a BicepNet.PS module that is ready to be loaded.  
+This will create the folder 'output' containing a BicepNet.PS module that is ready to be loaded.  
 To use the new version of BicepNet in PSBicep, copy the module to the PSBicep module folder.  
-

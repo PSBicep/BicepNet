@@ -19,12 +19,12 @@ param(
 $netcoreversion = 'net7.0'
 
 $ProjectRoot = "$PSScriptRoot/.."
-$outPath = "$ProjectRoot/out/BicepNet.PS"
-$commonPath = "$outPath/Bicep"
-$corePath = "$outPath/Module.NetCore"
+$outPath = "$ProjectRoot/output/BicepNet.PS"
+$commonPath = "$outPath/BicepNet.Core"
+$corePath = "$outPath/BicepNet.PS"
 
 if (Test-Path $outPath) {
-    Remove-Item -Path $outPath -Recurse
+    Remove-Item -Path $outPath -Recurse -Force
 }
 New-Item -Path $outPath -ItemType Directory
 New-Item -Path $commonPath -ItemType Directory
@@ -57,31 +57,31 @@ $commonFiles = [System.Collections.Generic.HashSet[string]]::new()
 
 Get-ChildItem -Path "$ProjectRoot/BicepNet.Core/bin/$Configuration/$netcoreversion/publish" |
 Where-Object { $_.Extension -in '.dll', '.pdb' } |
-ForEach-Object { 
-    [void]$commonFiles.Add($_.Name); 
-    Copy-Item -LiteralPath $_.FullName -Destination $commonPath 
+ForEach-Object {
+    [void]$commonFiles.Add($_.Name);
+    Copy-Item -LiteralPath $_.FullName -Destination $commonPath
 }
 
 Get-ChildItem -Path "$ProjectRoot/BicepNet.PS/bin/$Configuration/$netcoreversion/publish" |
 Where-Object { $_.Extension -in '.dll', '.pdb' -and -not $commonFiles.Contains($_.Name) } |
-ForEach-Object { 
+ForEach-Object {
     Copy-Item -LiteralPath $_.FullName -Destination $corePath
 }
 
-Copy-Item -Path "$ProjectRoot/BicepNet.PS/Manifest/BicepNet.PS.psd1" -Destination $outPath
-if (-not $PSBoundParameters.ContainsKey('Version')) {
-    try {
-        $Version = gitversion /showvariable LegacySemVerPadded
-    }
-    catch {
-        $Version = [string]::Empty
-    }
-}
+# Copy-Item -Path "$ProjectRoot/BicepNet.PS/Manifest/BicepNet.PS.psd1" -Destination $outPath
+# if (-not $PSBoundParameters.ContainsKey('Version')) {
+#     try {
+#         $Version = gitversion /showvariable LegacySemVerPadded
+#     }
+#     catch {
+#         $Version = [string]::Empty
+#     }
+# }
 
-if($Version) {
-    $SemVer, $PreReleaseTag = $Version.Split('-')
-    Update-ModuleManifest -Path "$outPath/BicepNet.PS.psd1" -ModuleVersion $SemVer -Prerelease $PreReleaseTag
-}
+# if($Version) {
+#     $SemVer, $PreReleaseTag = $Version.Split('-')
+#     Update-ModuleManifest -Path "$outPath/BicepNet.PS.psd1" -ModuleVersion $SemVer -Prerelease $PreReleaseTag
+# }
 
 Move-Item "$outPath/Bicep/Microsoft.Extensions.Logging.Abstractions.dll" "$outPath/Module.NetCore/" -ErrorAction 'Ignore'
 

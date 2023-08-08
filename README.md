@@ -1,6 +1,8 @@
 # BicepNet
 
-This is the repository for **BicepNet**, a thin wrapper around [Bicep](https://github.com/Azure/bicep) that will load all Bicep assemblies in a separate context to avoid conflicts with other modules. **BicepNet** is developed for the [Bicep PowerShell](https://github.com/PSBicep/BicepPowerShell) module but could be used for any other project where you want to leverage Bicep functionality in PowerShell or .NET.
+This is the repository for **BicepNet**, a thin wrapper around [Bicep](https://github.com/Azure/bicep) that will load all Bicep assemblies in a separate context to avoid conflicts with other modules. **BicepNet** is developed for the [Bicep PowerShell](https://github.com/PSBicep/BicepPowerShell) module but could be used for any other project where you want to leverage Bicep functionality natively in PowerShell or .NET.
+
+Using BicepNet is generally much faster than calling the CLI since the overhead of loading all assemblies is only performed once. Since BicepNet depends on internal code from the Bicep project, support for new versions of Bicep is incorporated with a bit of delay. The table below shows wich version of Bicep is used in each release of BicepNet.
 
 ## Bicep assembly versions
 

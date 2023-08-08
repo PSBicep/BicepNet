@@ -32,3 +32,5 @@ git checkout $bicepVersion
 while(Get-Location -Stack -StackName 'Dependencies' -ErrorAction 'Ignore') {
     Pop-Location -StackName 'Dependencies'
 }
+
+dotnet restore BicepNet.sln
