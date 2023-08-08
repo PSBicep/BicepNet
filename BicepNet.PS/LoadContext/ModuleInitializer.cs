@@ -12,7 +12,7 @@ public class BicepNetModuleInitializer : IModuleAssemblyInitializer
             Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
             ".."));
 
-    private static readonly string s_binCommonPath = Path.Combine(s_binBasePath, "Bicep");
+    private static readonly string s_binCommonPath = Path.Combine(s_binBasePath, "BicepNet.Core");
 
     public void OnImport()
     {

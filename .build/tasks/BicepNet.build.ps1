@@ -55,4 +55,7 @@ task dotnetBuild {
 
         Pop-Location
     }
+
+    # Hack to get the logging abstractions DLL into the PS module instead of the ALC
+    Move-Item "BicepNet.Core/bin/BicepNet.Core/Microsoft.Extensions.Logging.Abstractions.dll" "BicepNet.PS/bin/BicepNet.PS" -ErrorAction 'Ignore'
 }

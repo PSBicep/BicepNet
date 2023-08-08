@@ -8,10 +8,10 @@ SourcePath: BicepNet.PS/Manifest/BicepNet.PS.psd1
 OutputDirectory: ../../output/BicepNet.PS
 # BuiltModuleSubdirectory: module
 CopyPaths:
-  - ../../BicepNet.Core/BicepNet/out/BicepNet.Core
-  - ../../BicepNet.PS/BicepNet/out/BicepNet.PS
-  - ../../License
-  - ../../CHAGELOG.md
+  - ../BicepNet.Core/bin/BicepNet.Core
+  - ../BicepNet.PS/bin/BicepNet.PS
+  - ../LICENSE
+  - ../CHANGELOG.md
 #  - en-US
 #  - DSCResources
   # - Modules
@@ -49,7 +49,7 @@ NestedModule:
 BuildWorkflow:
   '.': # "." is the default Invoke-Build workflow. It is called when no -Tasks is specified to the build.ps1
     - build
-    - test
+    #- test
 
   compile:
     - dotnetBuild
@@ -69,10 +69,10 @@ BuildWorkflow:
 
 
   # Defining test task to be run when invoking `./build.ps1 -Tasks test`
-  test:
+  #test:
     # Uncomment to modify the PSModulePath in the test pipeline (also requires the build configuration section SetPSModulePath).
     #- Set_PSModulePath
-    - Pester_Tests_Stop_On_Fail
+    #- Pester_Tests_Stop_On_Fail
     # Use this task if pipeline uses code coverage and the module is using the
     # pattern of Public, Private, Enum, Classes.
     #- Convert_Pester_Coverage

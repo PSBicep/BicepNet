@@ -23,9 +23,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TMP\bicep\src\Bicep.LangServer\Bicep.LangServer.csproj" />
-    <ProjectReference Include="..\TMP\bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" />
-    <ProjectReference Include="..\TMP\bicep\src\Bicep.Cli\Bicep.Cli.csproj" />
+    <ProjectReference Include="..\output\RequiredModules\Bicep\Bicep\src\Bicep.LangServer\Bicep.LangServer.csproj" />
+    <ProjectReference Include="..\output\RequiredModules\Bicep\Bicep\src\Bicep.Decompiler\Bicep.Decompiler.csproj" />
+    <ProjectReference Include="..\output\RequiredModules\Bicep\Bicep\src\Bicep.Cli\Bicep.Cli.csproj" />
   </ItemGroup>
 
 </Project>
