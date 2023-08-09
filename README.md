@@ -32,3 +32,14 @@ Using BicepNet is generally much faster than calling the CLI since the overhead 
 ## Issues
 
 Issues is disabled in the BicepNet repository. Open an issue in [PSBicep/PSBicep](https://github.com/PSBicep/PSBicep/issues) for bug reports or feature requests.
+
+## Contributing
+If you like the BicepNet PowerShell module and want to contribute you are very much welcome to do so. Please read our [Contribution Guide](CONTRIBUTING.md) before you start! ❤
+
+## Maintainers
+
+This project is currently maintained by the following coders:
+
+- [SimonWahlin](https://github.com/SimonWahlin)
+- [PalmEmanuel](https://github.com/PalmEmanuel)
+- [StefanIvemo](https://github.com/StefanIvemo)
