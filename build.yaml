@@ -49,7 +49,7 @@ NestedModule:
 BuildWorkflow:
   '.': # "." is the default Invoke-Build workflow. It is called when no -Tasks is specified to the build.ps1
     - build
-    #- test
+    - test
 
   compile:
     - dotnetBuild
@@ -61,7 +61,6 @@ BuildWorkflow:
     - Build_NestedModules_ModuleBuilder
     - Create_changelog_release_output
 
-
   pack:
     - build
     - package_module_nupkg
@@ -69,10 +68,10 @@ BuildWorkflow:
 
 
   # Defining test task to be run when invoking `./build.ps1 -Tasks test`
-  #test:
+  test:
     # Uncomment to modify the PSModulePath in the test pipeline (also requires the build configuration section SetPSModulePath).
-    #- Set_PSModulePath
-    #- Pester_Tests_Stop_On_Fail
+    - Set_PSModulePath
+    - Pester_Tests_Stop_On_Fail
     # Use this task if pipeline uses code coverage and the module is using the
     # pattern of Public, Private, Enum, Classes.
     #- Convert_Pester_Coverage
