@@ -83,7 +83,7 @@ BicepNet is developed for the Bicep PowerShell module but could be used for any 
             ReleaseNotes = 'https://github.com/PSBicep/BicepNet/releases'
 
             # Prerelease string of this module
-            # Prerelease = ''
+            Prerelease = ''
 
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false
