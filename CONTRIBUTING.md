@@ -20,7 +20,7 @@ BicepNet.Core will have all it's dependencies loaded into the assembly load cont
 
 Any class needed for data returned to BicepNet.PS needs to be defined in the BicepNet.Core as well. These are defined as classes in the Modules folder of BicepNet.Core.
 
-## Setting up a dev-environment
+## Setting up a dev-environment - devcontainer
 
 The project ships with a dev container, it should contain everything needed.  
 The container build process will clone and build Bicep which takes some time, please be patient.
@@ -28,7 +28,7 @@ The container build process will clone and build Bicep which takes some time, pl
 **Known Issues:**
 * There might be an error stating that it failed to restore projects. This is because the language servers tries to restore the project before the dependencies are downloaded. Just ignore the error and restart the container or reload the workspace and it should work as expected.  
 
-To with with BicepNet locally, follow the instructions below:
+## Setting up a dev-environment - local development
 
 ### Prerequisites for local setup
 
