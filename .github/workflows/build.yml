@@ -43,6 +43,12 @@ jobs:
     needs:
     - build
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+        fetch-depth: 0
+
     - name: 'Test on Linux'
       uses: ./.github/actions/test-linux
 
@@ -55,6 +61,11 @@ jobs:
     - test-linux
     # - test-win
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+        fetch-depth: 0
     - name: 'Publish Code Coverage'
       uses: ./.github/actions/code-coverage
 
