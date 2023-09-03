@@ -61,7 +61,7 @@ BuildWorkflow:
     - Build_NestedModules_ModuleBuilder
     - Create_changelog_release_output
 
-  pack:
+  package:
     - build
     - package_module_nupkg
 

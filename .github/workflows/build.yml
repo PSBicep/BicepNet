@@ -6,7 +6,7 @@ on:
     - main
     types:
     - opened
-    - sychronize
+    - synchronize
     paths-ignore:
     - CHANGELOG.md
 
@@ -28,6 +28,12 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+        fetch-depth: 0
+
     - name: 'Build and Package Module'
       uses: ./.github/actions/build
 
@@ -37,6 +43,12 @@ jobs:
     needs:
     - build
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+        fetch-depth: 0
+
     - name: 'Test on Linux'
       uses: ./.github/actions/test-linux
 
@@ -49,6 +61,11 @@ jobs:
     - test-linux
     # - test-win
     steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ github.head_ref }}
+        fetch-depth: 0
     - name: 'Publish Code Coverage'
       uses: ./.github/actions/code-coverage
 
@@ -76,11 +93,11 @@ jobs:
       shell: pwsh
       run: Write-Host 'Publishing' #Import-Module ./output/RequiredModules/PowerShellForGitHub/0.16.1/PowerShellForGitHub.psd1 ; ./build.ps1 -tasks publish
       env:
-        GitHubToken: ${{ secrets.GitHubToken }}
+        GitHubToken: ${{ secrets.GITHUB_TOKEN }}
         GalleryApiToken: ${{ secrets.BICEPNET_PSGALLERY_KEY }}
 
     # - name: Send Changelog PR
     #   shell: pwsh
     #   run: Get-Module -Name PowerShellForGitHub -ListAvailable ;./build.ps1  -tasks Create_ChangeLog_GitHub_PR
     #   env:
-    #     GitHubToken: ${{ secrets.GitHubToken }}
+    #     GitHubToken: ${{ secrets.GITHUB_TOKEN }}
