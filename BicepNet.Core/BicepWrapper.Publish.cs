@@ -14,7 +14,7 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public void Publish(string inputFilePath, string targetModuleReference) => 
+    public void Publish(string inputFilePath, string targetModuleReference) =>
         joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference));
 
     public async Task PublishAsync(string inputFilePath, string targetModuleReference)
@@ -32,7 +32,7 @@ public partial class BicepWrapper
         }
 
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
-        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, bicepAnalyzer);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, modelLookup: null);
         if (LogDiagnostics(compilation))
         {
             var stream = new MemoryStream();

@@ -1,7 +1,7 @@
 @{
 
-    # Script module or binary module file associated with this manifest.
-    RootModule           = 'BicepNet.PS/BicepNet.PS.dll'
+    # Script or binary modules required by this module
+    NestedModules        = 'BicepNet.PS/BicepNet.PS.dll'
 
     # Version number of this module.
     ModuleVersion        = '2.1.0'
