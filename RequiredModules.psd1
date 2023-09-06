@@ -20,5 +20,5 @@
     'DscResource.AnalyzerRules' = 'latest'
     xDscResourceDesigner        = 'latest'
     'DscResource.DocGenerator'  = 'latest'
-    'Azure/Bicep'               = 'v0.18.4'
+    'Azure/Bicep'               = 'v0.20.4'
 }
