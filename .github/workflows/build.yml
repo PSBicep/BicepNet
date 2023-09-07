@@ -91,13 +91,13 @@ jobs:
 
     - name: Publish Release
       shell: pwsh
-      run: Write-Host 'Publishing' #Import-Module ./output/RequiredModules/PowerShellForGitHub/0.16.1/PowerShellForGitHub.psd1 ; ./build.ps1 -tasks publish
+      run: Import-Module ./output/RequiredModules/PowerShellForGitHub/0.16.1/PowerShellForGitHub.psd1 ; ./build.ps1 -tasks publish
       env:
         GitHubToken: ${{ secrets.GITHUB_TOKEN }}
         GalleryApiToken: ${{ secrets.BICEPNET_PSGALLERY_KEY }}
 
-    # - name: Send Changelog PR
-    #   shell: pwsh
-    #   run: Get-Module -Name PowerShellForGitHub -ListAvailable ;./build.ps1  -tasks Create_ChangeLog_GitHub_PR
-    #   env:
-    #     GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+    - name: Send Changelog PR
+      shell: pwsh
+      run: Get-Module -Name PowerShellForGitHub -ListAvailable ;./build.ps1  -tasks Create_ChangeLog_GitHub_PR
+      env:
+        GitHubToken: ${{ secrets.GITHUB_TOKEN }}
