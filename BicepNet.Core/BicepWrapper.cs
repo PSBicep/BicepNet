@@ -51,7 +51,6 @@ public partial class BicepWrapper
     private readonly IFileResolver fileResolver;
     private readonly IFileSystem fileSystem;
     private readonly BicepNetConfigurationManager configurationManager;
-    private readonly IApiVersionProviderFactory apiVersionProviderFactory;
     private readonly IBicepAnalyzer bicepAnalyzer;
     private readonly IFeatureProviderFactory featureProviderFactory;
     private readonly BicepCompiler compiler;
@@ -80,7 +79,6 @@ public partial class BicepWrapper
         fileResolver = services.GetRequiredService<IFileResolver>();
         fileSystem = services.GetRequiredService<IFileSystem>();
         configurationManager = services.GetRequiredService<BicepNetConfigurationManager>();
-        apiVersionProviderFactory = services.GetRequiredService<IApiVersionProviderFactory>();
         bicepAnalyzer = services.GetRequiredService<IBicepAnalyzer>();
         featureProviderFactory = services.GetRequiredService<IFeatureProviderFactory>();
         compiler = services.GetRequiredService<BicepCompiler>();

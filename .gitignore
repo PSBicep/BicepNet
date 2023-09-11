@@ -1,8 +1,11 @@
+output/
 out/
 tmp/
 TMP/
 coverage.xml
 testResults.xml
+*.local.*
+
 
 # The following command works for downloading when using Git for Windows:
 # curl -LOf http://gist.githubusercontent.com/kmorcinek/2710267/raw/.gitignore
@@ -216,6 +219,9 @@ project.lock.json
 
 # Visual Studio Code
 .vscode/
+!.vscode/analyzersettings.psd1
+!.vscode/settings.json
+!.vscode/tasks.json
 
 # Output folder used by Webpack or other FE stuff
 **/node_modules/*

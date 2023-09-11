@@ -47,7 +47,7 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
         configFileUriToLoadedConfigCache.AddOrUpdate(configUri, LoadConfiguration, (uri, prev) =>
         {
             var reloaded = LoadConfiguration(uri);
-            if (prev.config is { } prevConfig && reloaded.Item1 is { } newConfig)
+            if (prev.config is {} prevConfig && reloaded.Item1 is {} newConfig)
             {
                 returnVal = (prevConfig, newConfig);
             }
@@ -97,7 +97,15 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
     {
         if (diagnostics.Count > 0)
         {
-            return new(configuration.Cloud, configuration.ModuleAliases, configuration.Analyzers, configuration.CacheRootDirectory, configuration.ExperimentalFeaturesEnabled, configuration.ConfigurationPath, diagnostics);
+            return new(
+                configuration.Cloud,
+                configuration.ModuleAliases,
+                configuration.Analyzers,
+                configuration.CacheRootDirectory,
+                configuration.ExperimentalFeaturesEnabled,
+                configuration.Formatting,
+                configuration.ConfigurationPath,
+                diagnostics);
         }
 
         return configuration;

@@ -5,6 +5,7 @@ using Bicep.Core.Syntax;
 using Bicep.LanguageServer.Providers;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -124,15 +125,16 @@ public static partial class AzureHelpers
         return new ResourceDeclarationSyntax(
             new SyntaxBase[] { description, SyntaxFactory.NewlineToken, },
             SyntaxFactory.CreateIdentifierToken("resource"),
-            SyntaxFactory.CreateIdentifier(NotAnsiLetter().Replace(resourceId.UnqualifiedName, "")),
+            SyntaxFactory.CreateIdentifier(NotLetters().Replace(resourceId.UnqualifiedName, "")),
             SyntaxFactory.CreateStringLiteral(typeReference.FormatName()),
             null,
             SyntaxFactory.CreateToken(TokenType.Assignment),
+            ImmutableArray<Token>.Empty,
             SyntaxFactory.CreateObject(properties));
     }
-    
+
     // Private method originally copied from InsertResourceHandler.cs
-    internal static SyntaxBase ConvertJsonElement(JsonElement element)
+    private static SyntaxBase ConvertJsonElement(JsonElement element)
     {
         switch (element.ValueKind)
         {
@@ -159,8 +161,8 @@ public static partial class AzureHelpers
                 }
 
                 return SyntaxFactory.CreateFunctionCall(
-                        "json",
-                        SyntaxFactory.CreateStringLiteral(element.ToString()));
+                    "json",
+                    SyntaxFactory.CreateStringLiteral(element.ToString()));
             case JsonValueKind.True:
                 return SyntaxFactory.CreateToken(TokenType.TrueKeyword);
             case JsonValueKind.False:
@@ -171,4 +173,7 @@ public static partial class AzureHelpers
                 throw new InvalidOperationException($"Failed to deserialize JSON");
         }
     }
+
+    [GeneratedRegex("[^a-zA-Z]")]
+    private static partial Regex NotLetters();
 }

@@ -1,18 +1,12 @@
-﻿using Azure.Core;
-using Bicep.Core.Diagnostics;
+﻿using Bicep.Core.Diagnostics;
 using Bicep.Core.Extensions;
-using Bicep.Core.Parsing;
 using Bicep.Core.PrettyPrint;
 using Bicep.Core.PrettyPrint.Options;
-using Bicep.Core.Resources;
 using Bicep.Core.Rewriters;
 using Bicep.Core.Semantics;
-using Bicep.Core.Syntax;
 using Bicep.Core.Workspaces;
-using Bicep.LanguageServer.Providers;
 using BicepNet.Core.Azure;
 using System;
-using System.Collections.Immutable;
 using System.Text.Json;
 
 namespace BicepNet.Core;
@@ -39,7 +33,7 @@ public partial class BicepWrapper
         workspace.UpsertSourceFiles(virtualBicepFile.AsEnumerable());
 
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, forceModulesRestore: false);
-        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, apiVersionProviderFactory, bicepAnalyzer);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, null);
 
         var bicepFile = RewriterHelper.RewriteMultiple(
                 compilation,

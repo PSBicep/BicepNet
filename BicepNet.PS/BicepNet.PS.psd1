@@ -1,10 +1,10 @@
 @{
 
-    # Script module or binary module file associated with this manifest.
-    RootModule           = 'Module.NetCore/BicepNet.PS.dll'
+    # Script or binary modules required by this module
+    NestedModules        = 'BicepNet.PS/BicepNet.PS.dll'
 
     # Version number of this module.
-    ModuleVersion        = '2.1.0'
+    ModuleVersion        = '2.2.0'
 
     # Supported PSEditions
     CompatiblePSEditions = @('Core')
@@ -22,7 +22,7 @@
     Copyright            = '(c) 2023 Simon Wåhlin. All rights reserved.'
 
     # Description of the functionality provided by this module
-    Description = 'A thin wrapper around bicep that will load all Bicep assemblies in a separate context to avoid conflicts with other modules. 
+    Description = 'A thin wrapper around bicep that will load all Bicep assemblies in a separate context to avoid conflicts with other modules.
 BicepNet is developed for the Bicep PowerShell module but could be used for any other project where you want to leverage Bicep functionality in PowerShell or .NET.'
 
     # Minimum version of the PowerShell engine required by this module
@@ -83,7 +83,7 @@ BicepNet is developed for the Bicep PowerShell module but could be used for any 
             ReleaseNotes = 'https://github.com/PSBicep/BicepNet/releases'
 
             # Prerelease string of this module
-            # Prerelease = ''
+            Prerelease = ''
 
             # Flag to indicate whether the module requires explicit user acceptance for install/update/save
             # RequireLicenseAcceptance = $false
@@ -95,4 +95,3 @@ BicepNet is developed for the Bicep PowerShell module but could be used for any 
     } # End of PrivateData hashtable
 
 }
-
