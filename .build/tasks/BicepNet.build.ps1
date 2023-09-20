@@ -4,7 +4,7 @@ param (
 
     [ValidateSet('Debug', 'Release')]
     [string]
-    $Configuration = 'Debug',
+    $Configuration = 'Release',
 
     [Switch]
     $Full,

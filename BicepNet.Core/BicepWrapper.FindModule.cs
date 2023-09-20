@@ -32,7 +32,7 @@ public partial class BicepWrapper
             logger?.LogInformation("Searching file {inputString} for endpoints", inputString);
             var inputUri = PathHelper.FilePathToFileUrl(inputString);
 
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, featureProviderFactory, false);
 
             var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore());
             // FullyQualifiedReferences are already unwrapped from potential local aliases

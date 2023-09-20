@@ -13,8 +13,14 @@ public class PublishBicepNetFileCommand : BicepNetBaseCommand
     [ValidateNotNullOrEmpty]
     public string Target { get; set; }
 
+    [Parameter(Mandatory = false)]
+    [ValidateNotNullOrEmpty]
+    public string DocumentationUri { get; set; }
+
+    [Parameter(Mandatory = false)]
+    public SwitchParameter Force { get; set; }
     protected override void ProcessRecord()
     {
-        bicepWrapper.Publish(Path, Target);
+        bicepWrapper.Publish(Path, Target, DocumentationUri, Force.IsPresent);
     }
 }

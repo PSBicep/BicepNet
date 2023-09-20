@@ -2,10 +2,8 @@
 using Bicep.Cli.Services;
 using Bicep.Core;
 using Bicep.Core.Analyzers.Interfaces;
-using Bicep.Core.Analyzers.Linter.ApiVersions;
 using Bicep.Core.Configuration;
 using Bicep.Core.Diagnostics;
-using Bicep.Core.Emit;
 using Bicep.Core.Features;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Modules;
@@ -45,7 +43,7 @@ public partial class BicepWrapper
     private readonly INamespaceProvider namespaceProvider;
     private readonly IContainerRegistryClientFactory clientFactory;
     private readonly IModuleDispatcher moduleDispatcher;
-    private readonly IModuleRegistryProvider moduleRegistryProvider;
+    private readonly IArtifactRegistryProvider moduleRegistryProvider;
     private readonly BicepNetTokenCredentialFactory tokenCredentialFactory;
     private readonly IAzResourceTypeLoader azResourceTypeLoader;
     private readonly IFileResolver fileResolver;
@@ -73,7 +71,7 @@ public partial class BicepWrapper
         azResourceTypeLoader = services.GetRequiredService<IAzResourceTypeLoader>();
         clientFactory = services.GetRequiredService<IContainerRegistryClientFactory>();
         moduleDispatcher = services.GetRequiredService<IModuleDispatcher>();
-        moduleRegistryProvider = services.GetRequiredService<IModuleRegistryProvider>();
+        moduleRegistryProvider = services.GetRequiredService<IArtifactRegistryProvider>();
         tokenCredentialFactory = services.GetRequiredService<BicepNetTokenCredentialFactory>();
         tokenCredentialFactory.Logger = services.GetRequiredService<ILogger>();
         fileResolver = services.GetRequiredService<IFileResolver>();
