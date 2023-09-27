@@ -20,9 +20,9 @@ public partial class BicepWrapper
         var inputPath = PathHelper.ResolvePath(bicepPath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
 
-        if (!IsBicepFile(inputPath))
+        if (!IsBicepFile(inputPath) && !IsBicepparamsFile(inputPath))
         {
-            throw new InvalidOperationException($"Input file '{inputPath}' must have a .bicep extension.");
+            throw new InvalidOperationException($"Input file '{inputPath}' must have a .bicep or .bicepparam extension.");
         }
 
         var compilation = await compilationService.CompileAsync(inputPath, noRestore);
@@ -60,6 +60,7 @@ public partial class BicepWrapper
     }
 
     private static bool IsBicepFile(string inputPath) => PathHelper.HasBicepExtension(PathHelper.FilePathToFileUrl(inputPath));
+    private static bool IsBicepparamsFile(string inputPath) => PathHelper.HasBicepparamsExension(PathHelper.FilePathToFileUrl(inputPath));
     private static EmitResult EmitParamsFile(Compilation compilation, string usingPath, Stream stream)
     {
         var bicepPath = PathHelper.ResolvePath(usingPath);
