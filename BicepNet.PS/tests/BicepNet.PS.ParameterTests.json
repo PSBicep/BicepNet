@@ -748,6 +748,14 @@
         "ParameterType": "System.String"
       },
       {
+        "ParameterName": "DocumentationUri",
+        "ParameterType": "System.String"
+      },
+      {
+        "ParameterName": "Force",
+        "ParameterType": "System.Management.Automation.SwitchParameter"
+      },
+      {
         "ParameterName": "Verbose",
         "ParameterType": "System.Management.Automation.SwitchParameter"
       },
