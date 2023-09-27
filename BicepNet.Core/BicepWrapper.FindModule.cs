@@ -57,8 +57,10 @@ public partial class BicepWrapper
         foreach (var directoryPath in directories)
         {
             var directoryName = Path.GetFileName(directoryPath);
-            logger?.LogInformation("Found endpoint {directoryName}", directoryName);
-            endpoints.Add(directoryName);
+            if(directoryName != "mcr.microsoft.com") {
+                logger?.LogInformation("Found endpoint {directoryName}", directoryName);
+                endpoints.Add(directoryName);
+            }
         }
 
         return FindModulesByEndpoints(endpoints);
@@ -89,8 +91,6 @@ public partial class BicepWrapper
                 logger?.LogInformation("Searching endpoint {endpoint}", endpoint);
                 var client = new ContainerRegistryClient(new Uri($"https://{endpoint}"), cred, options);
                 var repositoryNames = client.GetRepositoryNames();
-
-                logger?.LogInformation("Found modules:\n{joinedRepositoryNames}", string.Join("\n", repositoryNames));
 
                 foreach (var repositoryName in repositoryNames)
                 {
