@@ -1,5 +1,7 @@
+using Bicep.Core;
 using Bicep.Core.Diagnostics;
 using Bicep.Core.FileSystem;
+using Bicep.Core.Navigation;
 using Bicep.Core.Registry;
 using Bicep.Core.Syntax;
 using Bicep.Core.Workspaces;
@@ -24,9 +26,11 @@ public partial class BicepWrapper
         // Create separate configuration for the build, to account for custom rule changes
         var buildConfiguration = configurationManager.GetConfiguration(inputUri);
 
-        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, forceModulesRestore);
-        var originalModulesToRestore = sourceFileGrouping.GetModulesToRestore().ToImmutableHashSet();
-        // Restore valid references, don't log any errors
+        var bicepCompiler = new BicepCompiler(featureProviderFactory, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
+        var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace);
+
+        var originalModulesToRestore = compilation.SourceFileGrouping.GetModulesToRestore().ToImmutableHashSet();
+
         // RestoreModules() does a distinct but we'll do it also to prevent duplicates in processing and logging
         var modulesToRestoreReferences = moduleDispatcher.GetValidModuleReferences(originalModulesToRestore)
             .Distinct()
@@ -35,8 +39,8 @@ public partial class BicepWrapper
         // restore is supposed to only restore the module references that are syntactically valid
         await moduleDispatcher.RestoreModules(modulesToRestoreReferences, forceModulesRestore);
 
-        // update the errors based on if the restore was successful
-        sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(moduleDispatcher, workspace, sourceFileGrouping);
+        // update the errors based on restore status
+        var sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(featureProviderFactory, this.moduleDispatcher, this.workspace, compilation.SourceFileGrouping);
 
         LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, originalModulesToRestore, forceModulesRestore));
 
@@ -51,25 +55,27 @@ public partial class BicepWrapper
         }
     }
 
-    private ImmutableDictionary<BicepSourceFile, ImmutableArray<IDiagnostic>> GetModuleRestoreDiagnosticsByBicepFile(SourceFileGrouping sourceFileGrouping, ImmutableHashSet<ModuleSourceResolutionInfo> originalModulesToRestore, bool forceModulesRestore)
+    private static ImmutableDictionary<BicepSourceFile, ImmutableArray<IDiagnostic>> GetModuleRestoreDiagnosticsByBicepFile(SourceFileGrouping sourceFileGrouping, ImmutableHashSet<ArtifactResolutionInfo> originalModulesToRestore, bool forceModulesRestore)
     {
-        static IDiagnostic? DiagnosticForModule(SourceFileGrouping grouping, ModuleDeclarationSyntax module)
-                => grouping.TryGetErrorDiagnostic(module) is { } errorBuilder ? errorBuilder(DiagnosticBuilder.ForPosition(module.Path)) : null;
+        static IDiagnostic? DiagnosticForModule(SourceFileGrouping grouping, IArtifactReferenceSyntax moduleDeclaration)
+            => grouping.TryGetErrorDiagnostic(moduleDeclaration) is { } errorBuilder ? errorBuilder(DiagnosticBuilder.ForPosition(moduleDeclaration.SourceSyntax)) : null;
 
-        static IEnumerable<(BicepSourceFile, IDiagnostic)> GetDiagnosticsForModulesToRestore(SourceFileGrouping grouping, ImmutableHashSet<ModuleSourceResolutionInfo> originalModulesToRestore)
+        static IEnumerable<(BicepFile, IDiagnostic)> GetDiagnosticsForModulesToRestore(SourceFileGrouping grouping, ImmutableHashSet<ArtifactResolutionInfo> originalArtifactsToRestore)
         {
+            var originalModulesToRestore = originalArtifactsToRestore.OfType<ArtifactResolutionInfo>();
             foreach (var (module, sourceFile) in originalModulesToRestore)
             {
-                if (sourceFile is BicepSourceFile bicepFile && DiagnosticForModule(grouping, module) is { } diagnostic)
+                if (sourceFile is BicepFile bicepFile &&
+                    DiagnosticForModule(grouping, module) is { } diagnostic)
                 {
                     yield return (bicepFile, diagnostic);
                 }
             }
         }
 
-        static IEnumerable<(BicepSourceFile, IDiagnostic)> GetDiagnosticsForAllModules(SourceFileGrouping grouping)
+        static IEnumerable<(BicepFile, IDiagnostic)> GetDiagnosticsForAllModules(SourceFileGrouping grouping)
         {
-            foreach (var bicepFile in grouping.SourceFiles.OfType<BicepSourceFile>())
+            foreach (var bicepFile in grouping.SourceFiles.OfType<BicepFile>())
             {
                 foreach (var module in bicepFile.ProgramSyntax.Declarations.OfType<ModuleDeclarationSyntax>())
                 {
@@ -85,6 +91,6 @@ public partial class BicepWrapper
 
         return diagnosticsByFile
             .ToLookup(t => t.Item1, t => t.Item2)
-            .ToImmutableDictionary(g => g.Key, g => g.ToImmutableArray());
+            .ToImmutableDictionary(g => (BicepSourceFile)g.Key, g => g.ToImmutableArray());
     }
 }

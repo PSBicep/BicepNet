@@ -1,11 +1,9 @@
+using Bicep.Core;
 using Bicep.Core.Diagnostics;
 using Bicep.Core.Emit;
 using Bicep.Core.Exceptions;
 using Bicep.Core.FileSystem;
-using Bicep.Core.Modules;
 using Bicep.Core.Registry;
-using Bicep.Core.Semantics;
-using Bicep.Core.Workspaces;
 using System;
 using System.IO;
 using System.Threading.Tasks;
@@ -14,38 +12,40 @@ namespace BicepNet.Core;
 
 public partial class BicepWrapper
 {
-    public void Publish(string inputFilePath, string targetModuleReference) =>
-        joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference));
+    public void Publish(string inputFilePath, string targetModuleReference, string? documentationUri, bool overwriteIfExists = false) =>
+        joinableTaskFactory.Run(() => PublishAsync(inputFilePath, targetModuleReference, documentationUri, overwriteIfExists = false));
 
-    public async Task PublishAsync(string inputFilePath, string targetModuleReference)
+    public async Task PublishAsync(string inputFilePath, string targetModuleReference, string? documentationUri, bool overwriteIfExists = false)
     {
         var inputPath = PathHelper.ResolvePath(inputFilePath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
-        var moduleReference = ValidateReference(targetModuleReference, inputUri);
+        ArtifactReference? moduleReference = ValidateReference(targetModuleReference, inputUri);
 
         if (PathHelper.HasArmTemplateLikeExtension(inputUri))
         {
             // Publishing an ARM template file.
             using var armTemplateStream = fileSystem.FileStream.New(inputPath, FileMode.Open, FileAccess.Read);
-            await PublishModuleAsync(moduleReference, armTemplateStream);
+            await this.PublishModuleAsync(moduleReference, armTemplateStream, documentationUri, overwriteIfExists);
             return;
         }
 
-        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
-        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, modelLookup: null);
+        var bicepCompiler = new BicepCompiler(featureProviderFactory, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
+        var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace);
+
         if (LogDiagnostics(compilation))
         {
             var stream = new MemoryStream();
             new TemplateEmitter(compilation.GetEntrypointSemanticModel()).Emit(stream);
 
             stream.Position = 0;
-            await PublishModuleAsync(moduleReference, stream);
+            await PublishModuleAsync(moduleReference, stream, documentationUri, overwriteIfExists);
         }
     }
 
-    private ModuleReference ValidateReference(string targetModuleReference, Uri targetModuleUri)
+    // copied from PublishCommand.cs
+    private ArtifactReference ValidateReference(string targetModuleReference, Uri targetModuleUri)
     {
-        if (!moduleDispatcher.TryGetModuleReference(targetModuleReference, targetModuleUri, out var moduleReference, out var failureBuilder))
+        if (!this.moduleDispatcher.TryGetModuleReference(targetModuleReference, targetModuleUri, out var moduleReference, out var failureBuilder))
         {
             // TODO: We should probably clean up the dispatcher contract so this sort of thing isn't necessary (unless we change how target module is set in this command)
             var message = failureBuilder(DiagnosticBuilder.ForDocumentStart()).Message;
@@ -53,7 +53,7 @@ public partial class BicepWrapper
             throw new BicepException(message);
         }
 
-        if (!moduleDispatcher.GetRegistryCapabilities(moduleReference).HasFlag(RegistryCapabilities.Publish))
+        if (!this.moduleDispatcher.GetRegistryCapabilities(moduleReference).HasFlag(RegistryCapabilities.Publish))
         {
             throw new BicepException($"The specified module target \"{targetModuleReference}\" is not supported.");
         }
@@ -61,13 +61,19 @@ public partial class BicepWrapper
         return moduleReference;
     }
 
-    private async Task PublishModuleAsync(ModuleReference target, Stream stream)
+    // copied from PublishCommand.cs
+    private async Task PublishModuleAsync(ArtifactReference target, Stream stream, string? documentationUri, bool overwriteIfExists)
     {
         try
         {
-            await moduleDispatcher.PublishModule(target, stream, null);
+            // If we don't want to overwrite, ensure module doesn't exist
+            if (!overwriteIfExists && await this.moduleDispatcher.CheckModuleExists(target))
+            {
+                throw new BicepException($"The module \"{target.FullyQualifiedReference}\" already exists in registry. Use -Force to overwrite the existing module.");
+            }
+            await this.moduleDispatcher.PublishModule(target, stream, documentationUri);
         }
-        catch (ExternalModuleException exception)
+        catch (ExternalArtifactException exception)
         {
             throw new BicepException($"Unable to publish module \"{target.FullyQualifiedReference}\": {exception.Message}");
         }

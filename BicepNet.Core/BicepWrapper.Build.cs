@@ -1,3 +1,4 @@
+using Bicep.Core;
 using Bicep.Core.Emit;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Semantics;
@@ -17,28 +18,24 @@ public partial class BicepWrapper
     public async Task<IList<string>> BuildAsync(string bicepPath, string usingPath = "", bool noRestore = false)
     {
         var inputPath = PathHelper.ResolvePath(bicepPath);
-        var features = featureProviderFactory.GetFeatureProvider(PathHelper.FilePathToFileUrl(inputPath));
-        var emitterSettings = new EmitterSettings(features, BicepSourceFileKind.BicepFile);
+        var inputUri = PathHelper.FilePathToFileUrl(inputPath);
 
-        if (emitterSettings.EnableSymbolicNames)
+        if (!IsBicepFile(inputPath) && !IsBicepparamsFile(inputPath))
         {
-            logger?.LogWarning("Symbolic name support in ARM is experimental, and should be enabled for testing purposes only.Do not enable this setting for any production usage, or you may be unexpectedly broken at any time!");
+            throw new InvalidOperationException($"Input file '{inputPath}' must have a .bicep or .bicepparam extension.");
         }
 
-        if (features.ResourceTypedParamsAndOutputsEnabled)
-        {
-            logger?.LogWarning("Resource-typed parameters and outputs in ARM are experimental, and should be enabled for testing purposes only. Do not enable this setting for any production usage, or you may be unexpectedly broken at any time!");
-        }
-        var template = new List<string>();
         var compilation = await compilationService.CompileAsync(inputPath, noRestore);
+
         if (diagnosticLogger is not null && diagnosticLogger.ErrorCount > 0)
         {
             throw new InvalidOperationException($"Failed to compile file: {inputPath}");
         }
 
-        var stream = new MemoryStream();
         var fileKind = compilation.SourceFileGrouping.EntryPoint.FileKind;
+        var semanticModel = compilation.GetEntrypointSemanticModel();
 
+        var stream = new MemoryStream();
         EmitResult emitresult = fileKind switch
         {
             BicepSourceFileKind.BicepFile => new TemplateEmitter(compilation.GetEntrypointSemanticModel()).Emit(stream),
@@ -54,11 +51,16 @@ public partial class BicepWrapper
         stream.Position = 0;
         using var reader = new StreamReader(stream);
         var result = await reader.ReadToEndAsync();
-        template.Add(result);
 
+        var template = new List<string>
+        {
+            result
+        };
         return template;
     }
 
+    private static bool IsBicepFile(string inputPath) => PathHelper.HasBicepExtension(PathHelper.FilePathToFileUrl(inputPath));
+    private static bool IsBicepparamsFile(string inputPath) => PathHelper.HasBicepparamsExension(PathHelper.FilePathToFileUrl(inputPath));
     private static EmitResult EmitParamsFile(Compilation compilation, string usingPath, Stream stream)
     {
         var bicepPath = PathHelper.ResolvePath(usingPath);
