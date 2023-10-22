@@ -32,7 +32,7 @@ public partial class BicepWrapper
             logger?.LogInformation("Searching file {inputString} for endpoints", inputString);
             var inputUri = PathHelper.FilePathToFileUrl(inputString);
 
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri);
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, featureProviderFactory, false);
 
             var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore());
             // FullyQualifiedReferences are already unwrapped from potential local aliases
@@ -57,8 +57,10 @@ public partial class BicepWrapper
         foreach (var directoryPath in directories)
         {
             var directoryName = Path.GetFileName(directoryPath);
-            logger?.LogInformation("Found endpoint {directoryName}", directoryName);
-            endpoints.Add(directoryName);
+            if(directoryName != "mcr.microsoft.com") {
+                logger?.LogInformation("Found endpoint {directoryName}", directoryName);
+                endpoints.Add(directoryName);
+            }
         }
 
         return FindModulesByEndpoints(endpoints);
@@ -89,8 +91,6 @@ public partial class BicepWrapper
                 logger?.LogInformation("Searching endpoint {endpoint}", endpoint);
                 var client = new ContainerRegistryClient(new Uri($"https://{endpoint}"), cred, options);
                 var repositoryNames = client.GetRepositoryNames();
-
-                logger?.LogInformation("Found modules:\n{joinedRepositoryNames}", string.Join("\n", repositoryNames));
 
                 foreach (var repositoryName in repositoryNames)
                 {

@@ -1,5 +1,4 @@
 ﻿using Bicep.Core.Diagnostics;
-using Bicep.Core.Extensions;
 using Bicep.Core.PrettyPrint;
 using Bicep.Core.PrettyPrint.Options;
 using Bicep.Core.Rewriters;
@@ -20,9 +19,7 @@ public partial class BicepWrapper
         JsonElement resource = JsonSerializer.Deserialize<JsonElement>(resourceBody);
 
         var template = AzureResourceProvider.GenerateBicepTemplate(id, matchedType, resource, includeTargetScope: true);
-        template = RewriteBicepTemplate(template);
-
-        return template;
+        return RewriteBicepTemplate(template);
     }
 
     public string RewriteBicepTemplate(string template)
@@ -30,10 +27,8 @@ public partial class BicepWrapper
         BicepFile virtualBicepFile = SourceFileFactory.CreateBicepFile(new Uri($"inmemory:///generated.bicep"), template);
 
         var workspace = new Workspace();
-        workspace.UpsertSourceFiles(virtualBicepFile.AsEnumerable());
-
-        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, forceModulesRestore: false);
-        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, null);
+        var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, featureProviderFactory, false);
+        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, moduleDispatcher);
 
         var bicepFile = RewriterHelper.RewriteMultiple(
                 compilation,
