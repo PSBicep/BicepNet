@@ -26,7 +26,6 @@ public partial class BicepWrapper
     {
         BicepFile virtualBicepFile = SourceFileFactory.CreateBicepFile(new Uri($"inmemory:///generated.bicep"), template);
 
-        var workspace = new Workspace();
         var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, virtualBicepFile.FileUri, featureProviderFactory, false);
         var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, moduleDispatcher);
 
