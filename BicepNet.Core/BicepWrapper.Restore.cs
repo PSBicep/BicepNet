@@ -41,7 +41,6 @@ public partial class BicepWrapper
 
         LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, originalModulesToRestore, forceModulesRestore));
 
-
         if (modulesToRestoreReferences.Any())
         {
             logger?.LogInformation("Successfully restored modules in {inputFilePath}", inputFilePath);
