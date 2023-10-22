@@ -24,7 +24,7 @@ public partial class BicepWrapper
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
 
         var bicepCompiler = new BicepCompiler(featureProviderFactory, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
-        var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace);
+        var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace, true, forceModulesRestore);
 
         var originalModulesToRestore = compilation.SourceFileGrouping.GetModulesToRestore().ToImmutableHashSet();
 
