@@ -23,11 +23,8 @@ public partial class BicepWrapper
         var inputPath = PathHelper.ResolvePath(inputFilePath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
 
-        // Create separate configuration for the build, to account for custom rule changes
-        var buildConfiguration = configurationManager.GetConfiguration(inputUri);
-
         var bicepCompiler = new BicepCompiler(featureProviderFactory, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
-        var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace);
+        var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace, true, forceModulesRestore);
 
         var originalModulesToRestore = compilation.SourceFileGrouping.GetModulesToRestore().ToImmutableHashSet();
 
@@ -44,7 +41,6 @@ public partial class BicepWrapper
 
         LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, originalModulesToRestore, forceModulesRestore));
 
-
         if (modulesToRestoreReferences.Any())
         {
             logger?.LogInformation("Successfully restored modules in {inputFilePath}", inputFilePath);
@@ -58,7 +54,7 @@ public partial class BicepWrapper
     private static ImmutableDictionary<BicepSourceFile, ImmutableArray<IDiagnostic>> GetModuleRestoreDiagnosticsByBicepFile(SourceFileGrouping sourceFileGrouping, ImmutableHashSet<ArtifactResolutionInfo> originalModulesToRestore, bool forceModulesRestore)
     {
         static IDiagnostic? DiagnosticForModule(SourceFileGrouping grouping, IArtifactReferenceSyntax moduleDeclaration)
-            => grouping.TryGetErrorDiagnostic(moduleDeclaration) is { } errorBuilder ? errorBuilder(DiagnosticBuilder.ForPosition(moduleDeclaration.SourceSyntax)) : null;
+            => grouping.TryGetSourceFile(moduleDeclaration).IsSuccess(out _, out var errorBuilder) ? null : errorBuilder(DiagnosticBuilder.ForPosition(moduleDeclaration.SourceSyntax));
 
         static IEnumerable<(BicepFile, IDiagnostic)> GetDiagnosticsForModulesToRestore(SourceFileGrouping grouping, ImmutableHashSet<ArtifactResolutionInfo> originalArtifactsToRestore)
         {

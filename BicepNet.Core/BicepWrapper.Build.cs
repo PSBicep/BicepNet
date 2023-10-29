@@ -1,3 +1,4 @@
+using Bicep.Cli;
 using Bicep.Core;
 using Bicep.Core.Emit;
 using Bicep.Core.FileSystem;
@@ -18,7 +19,6 @@ public partial class BicepWrapper
     public async Task<IList<string>> BuildAsync(string bicepPath, string usingPath = "", bool noRestore = false)
     {
         var inputPath = PathHelper.ResolvePath(bicepPath);
-        var inputUri = PathHelper.FilePathToFileUrl(inputPath);
 
         if (!IsBicepFile(inputPath) && !IsBicepparamsFile(inputPath))
         {
@@ -33,7 +33,6 @@ public partial class BicepWrapper
         }
 
         var fileKind = compilation.SourceFileGrouping.EntryPoint.FileKind;
-        var semanticModel = compilation.GetEntrypointSemanticModel();
 
         var stream = new MemoryStream();
         EmitResult emitresult = fileKind switch
@@ -65,13 +64,18 @@ public partial class BicepWrapper
     {
         var bicepPath = PathHelper.ResolvePath(usingPath);
         var paramsSemanticModel = compilation.GetEntrypointSemanticModel();
-        if (usingPath != "" && paramsSemanticModel.Root.TryGetBicepFileSemanticModelViaUsing(out var bicepSemanticModel, out _))
+        if (usingPath != "" && paramsSemanticModel.Root.TryGetBicepFileSemanticModelViaUsing().IsSuccess(out var usingModel))
         {
+            if (usingModel is not SemanticModel bicepSemanticModel)
+            {
+                throw new InvalidOperationException($"Bicep file {bicepPath} provided can only be used if the Bicep parameters \"using\" declaration refers to a Bicep file on disk.");
+            }
+
             var bicepFileUsingPathUri = bicepSemanticModel.Root.FileUri;
 
             if (bicepPath is not null && !bicepFileUsingPathUri.Equals(PathHelper.FilePathToFileUrl(bicepPath)))
             {
-                throw new InvalidOperationException($"Bicep file {bicepPath} provided with templatePath option doesn't match the Bicep file {bicepSemanticModel.Root.Name} referenced by the using declaration in the parameters file");
+                throw new InvalidOperationException($"Bicep file {bicepPath} provided with templatePath option doesn't match the Bicep file {bicepSemanticModel?.Root.Name} referenced by the using declaration in the parameters file");
             }
 
         }
