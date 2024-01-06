@@ -1,6 +1,6 @@
 param (
     [string[]]
-    $ProjectPath = @('BicepNet.Core', 'BicepNet.PS'),
+    $Paths = @('BicepNet.Core', 'BicepNet.PS'),
 
     [ValidateSet('Debug', 'Release')]
     [string]
@@ -22,7 +22,7 @@ task dotnetBuild {
         dotnet build-server shutdown
     }
 
-    foreach ($path in $ProjectPath) {
+    foreach ($path in $Paths) {
         $outPathFolder = Split-Path -Path (Resolve-Path -Path $path) -Leaf
         Write-Host $Path
         Write-Host $outPathFolder
