@@ -8,6 +8,7 @@ Using BicepNet is generally much faster than calling the CLI since the overhead 
 
 | BicepNet version | Bicep assembly version |
 | --- | --- |
+| `2.3.1` | `0.24.24` |
 | `2.3.0` | `0.22.6` |
 | `2.2.0` | `0.21.1` |
 | `2.1.0` | `0.18.4` |

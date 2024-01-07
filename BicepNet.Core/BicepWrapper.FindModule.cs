@@ -34,7 +34,7 @@ public partial class BicepWrapper
 
             var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, featureProviderFactory, false);
 
-            var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetModulesToRestore());
+            var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetArtifactsToRestore());
             // FullyQualifiedReferences are already unwrapped from potential local aliases
             var fullReferences = moduleReferences.Select(m => m.FullyQualifiedReference);
             // Create objects with all module references grouped by endpoint
@@ -78,7 +78,7 @@ public partial class BicepWrapper
         }
 
         // Create credential and options
-        var cred = tokenCredentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
+        var cred = tokenCredentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, null, configuration.Cloud.ActiveDirectoryAuthorityUri);
         var options = new ContainerRegistryClientOptions();
         options.Diagnostics.ApplySharedContainerRegistrySettings();
         options.Audience = new ContainerRegistryAudience(configuration.Cloud.ResourceManagerAudience);

@@ -31,12 +31,12 @@ public partial class BicepWrapper
             return;
         }
 
-        var bicepCompiler = new BicepCompiler(featureProviderFactory, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
+        var bicepCompiler = new BicepCompiler(featureProviderFactory, environment, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
         var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace);
         
         using var sourcesStream = features.PublishSourceEnabled ? SourceArchive.PackSourcesIntoStream(compilation.SourceFileGrouping) : null;
 
-        if (LogDiagnostics(compilation))
+        if (!LogDiagnostics(compilation).HasErrors)
         {
             var stream = new MemoryStream();
             new TemplateEmitter(compilation.GetEntrypointSemanticModel()).Emit(stream);

@@ -7,4 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for bicep v0.20.4
+- Support for Bicep v0.24.24.
+
+### Security
+
+- Added `global.json` to match Bicep project build config. This allows the project to build without .NET 8 vulnerability scanning.

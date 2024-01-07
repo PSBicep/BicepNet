@@ -23,6 +23,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -84,6 +88,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -130,6 +138,10 @@
       },
       {
         "ParameterName": "ErrorAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
+        "ParameterName": "ProgressAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
@@ -190,6 +202,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -240,6 +256,10 @@
       },
       {
         "ParameterName": "ErrorAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
+        "ParameterName": "ProgressAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
@@ -300,6 +320,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -354,6 +378,10 @@
       },
       {
         "ParameterName": "ErrorAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
+        "ParameterName": "ProgressAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
@@ -415,6 +443,10 @@
       },
       {
         "ParameterName": "ErrorAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
+        "ParameterName": "ProgressAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
@@ -491,6 +523,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -537,6 +573,10 @@
       },
       {
         "ParameterName": "ErrorAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
+        "ParameterName": "ProgressAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
@@ -597,6 +637,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -654,6 +698,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -700,6 +748,10 @@
       },
       {
         "ParameterName": "ErrorAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
+        "ParameterName": "ProgressAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
@@ -764,6 +816,10 @@
         "ParameterType": "System.Management.Automation.SwitchParameter"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "ErrorAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -821,6 +877,10 @@
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
+        "ParameterName": "ProgressAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
         "ParameterName": "WarningAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
@@ -875,6 +935,10 @@
       },
       {
         "ParameterName": "ErrorAction",
+        "ParameterType": "System.Management.Automation.ActionPreference"
+      },
+      {
+        "ParameterName": "ProgressAction",
         "ParameterType": "System.Management.Automation.ActionPreference"
       },
       {
