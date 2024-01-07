@@ -19,7 +19,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
     internal TokenCredential? Credential { get; set; }
     internal bool InteractiveAuthentication { get; set; }
 
-    public TokenCredential CreateChain(IEnumerable<CredentialType> credentialPrecedence, Uri authorityUri)
+    public TokenCredential CreateChain(IEnumerable<CredentialType> credentialPrecedence, CredentialOptions? credentialOptions, Uri authorityUri)
     {
         // Return the credential if already authenticated in BicepNet
         if (Credential is not null)
@@ -34,10 +34,10 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
         }
 
         // Authenticate using BicepConfig precedence
-        return new ChainedTokenCredential(credentialPrecedence.Select(credentialType => CreateSingle(credentialType, authorityUri)).ToArray());
+        return new ChainedTokenCredential(credentialPrecedence.Select(credentialType => CreateSingle(credentialType, null, authorityUri)).ToArray());
     }
 
-    public TokenCredential CreateSingle(CredentialType credentialType, Uri authorityUri)
+    public TokenCredential CreateSingle(CredentialType credentialType, CredentialOptions? credentialOptions, Uri authorityUri)
     {
         Credential = credentialType switch
         {

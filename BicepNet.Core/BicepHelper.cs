@@ -1,6 +1,6 @@
 using Azure.Deployments.Core.Comparers;
 using Bicep.Core.Resources;
-using Bicep.Core.TypeSystem.Az;
+using Bicep.Core.TypeSystem.Providers.Az;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -9,7 +9,7 @@ namespace BicepNet.Core;
 
 internal static class BicepHelper
 {
-    internal static ResourceTypeReference ResolveBicepTypeDefinition(string fullyQualifiedType, IAzResourceTypeLoader azResourceTypeLoader, ILogger? logger = null)
+    internal static ResourceTypeReference ResolveBicepTypeDefinition(string fullyQualifiedType, AzResourceTypeLoader azResourceTypeLoader, ILogger? logger = null)
     {
         var matchedType = azResourceTypeLoader.GetAvailableTypes()
             .Where(x => StringComparer.OrdinalIgnoreCase.Equals(fullyQualifiedType, x.FormatType()))

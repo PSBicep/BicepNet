@@ -23,10 +23,10 @@ public partial class BicepWrapper
         var inputPath = PathHelper.ResolvePath(inputFilePath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
 
-        var bicepCompiler = new BicepCompiler(featureProviderFactory, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
+        var bicepCompiler = new BicepCompiler(featureProviderFactory, environment, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
         var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace, true, forceModulesRestore);
 
-        var originalModulesToRestore = compilation.SourceFileGrouping.GetModulesToRestore().ToImmutableHashSet();
+        var originalModulesToRestore = compilation.SourceFileGrouping.GetArtifactsToRestore().ToImmutableHashSet();
 
         // RestoreModules() does a distinct but we'll do it also to prevent duplicates in processing and logging
         var modulesToRestoreReferences = moduleDispatcher.GetValidModuleReferences(originalModulesToRestore)
@@ -39,7 +39,7 @@ public partial class BicepWrapper
         // update the errors based on restore status
         var sourceFileGrouping = SourceFileGroupingBuilder.Rebuild(featureProviderFactory, this.moduleDispatcher, this.workspace, compilation.SourceFileGrouping);
 
-        LogDiagnostics(GetModuleRestoreDiagnosticsByBicepFile(sourceFileGrouping, originalModulesToRestore, forceModulesRestore));
+        LogDiagnostics(compilation);
 
         if (modulesToRestoreReferences.Any())
         {

@@ -27,7 +27,9 @@ public partial class BicepWrapper
 
         var compilation = await compilationService.CompileAsync(inputPath, noRestore);
 
-        if (diagnosticLogger is not null && diagnosticLogger.ErrorCount > 0)
+        var summary = LogDiagnostics(compilation);
+
+        if (diagnosticLogger is not null && summary.HasErrors)
         {
             throw new InvalidOperationException($"Failed to compile file: {inputPath}");
         }

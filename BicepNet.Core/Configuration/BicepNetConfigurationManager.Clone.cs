@@ -100,6 +100,7 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
             return new(
                 configuration.Cloud,
                 configuration.ModuleAliases,
+                configuration.ProviderAliases,
                 configuration.Analyzers,
                 configuration.CacheRootDirectory,
                 configuration.ExperimentalFeaturesEnabled,

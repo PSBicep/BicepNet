@@ -45,7 +45,7 @@ public partial class BicepWrapper
             new Dictionary<ISourceFile, ImmutableDictionary<IArtifactReferenceSyntax, Result<Uri, UriResolutionError>>>().ToImmutableDictionary(),
             new Dictionary<ISourceFile, ImmutableHashSet<ISourceFile>>().ToImmutableDictionary()
         );
-        var compilation = new Compilation(featureProviderFactory, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, moduleDispatcher);
+        var compilation = new Compilation(featureProviderFactory, environment, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, artifactReferenceFactory);
 
         var bicepFile = RewriterHelper.RewriteMultiple(
                 compilation,

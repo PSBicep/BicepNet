@@ -29,7 +29,7 @@ public class AzureResourceProvider : IAzResourceProvider
 
     private async Task UpdateAccessTokenAsync(RootConfiguration configuration, CancellationToken cancellationToken)
     {
-        var credential = credentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
+        var credential = credentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, null, configuration.Cloud.ActiveDirectoryAuthorityUri);
         var tokenRequestContext = new TokenRequestContext(new string[] { configuration.Cloud.AuthenticationScope }, configuration.Cloud.ResourceManagerEndpointUri.ToString());
         accessToken = await credential.GetTokenAsync(tokenRequestContext, cancellationToken);
     }
@@ -45,7 +45,7 @@ public class AzureResourceProvider : IAzResourceProvider
             options.SetApiVersion(new ResourceType(resourceTypeApiVersionMapping.resourceType), resourceTypeApiVersionMapping.apiVersion);
         }
 
-        var credential = credentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, configuration.Cloud.ActiveDirectoryAuthorityUri);
+        var credential = credentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, null, configuration.Cloud.ActiveDirectoryAuthorityUri);
 
         return new ArmClient(credential, subscriptionId, options);
     }
