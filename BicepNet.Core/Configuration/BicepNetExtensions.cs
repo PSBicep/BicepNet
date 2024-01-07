@@ -1,8 +1,13 @@
-﻿using Bicep.Cli;
+﻿using Azure.Bicep.Types;
+using Azure.Bicep.Types.Az;
+using Bicep.Cli;
 using Bicep.Cli.Helpers;
 using Bicep.Cli.Logging;
 using Bicep.Cli.Services;
+using Bicep.Core.Registry;
 using Bicep.Core.Registry.Auth;
+using Bicep.Core.TypeSystem.Providers;
+using Bicep.Core.TypeSystem.Providers.Az;
 using Bicep.Core.Workspaces;
 using Bicep.LanguageServer.Providers;
 using BicepNet.Core.Authentication;
@@ -25,8 +30,14 @@ public static class BicepNetExtensions
             .AddBicepDecompiler()
             .AddBicepparamDecompiler()
 
+            .AddSingleton<ModuleDispatcher>()
+            .AddSingleton<IArtifactReferenceFactory>(s => s.GetRequiredService<ModuleDispatcher>())
             .AddSingleton<AzureResourceProvider>()
             .AddSingleton<IAzResourceProvider>(s => s.GetRequiredService<AzureResourceProvider>())
+            .AddSingleton<AzTypeLoader>()
+            .AddSingleton<ITypeLoader>(s => s.GetRequiredService<AzTypeLoader>())
+            .AddSingleton<AzResourceTypeLoader>()
+            .AddSingleton<IResourceTypeLoader>(s => s.GetRequiredService<AzResourceTypeLoader>())
             .AddSingleton<Workspace>()
 
             .AddSingleton(bicepLogger)
