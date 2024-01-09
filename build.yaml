@@ -95,49 +95,10 @@ BuildWorkflow:
 
 Pester:
   OutputFormat: NUnitXML
-  # Excludes one or more paths from being used to calculate code coverage.
-  ExcludeFromCodeCoverage:
-
-  # If no scripts are defined the default is to use all the tests under the project's
-  # tests folder or source folder (if present). Test script paths can be defined to
-  # only run tests in certain folders, or run specific test files, or can be use to
-  # specify the order tests are run.
-  Script:
-  # - tests/QA/module.tests.ps1
-  # - tests/QA
-  # - tests/Unit
-  # - tests/Integration
-  ExcludeTag:
-  #  - helpQuality
-  #  - FunctionalQuality
-  #  - TestQuality
-  Tag:
-  CodeCoverageThreshold: 0 # Set to 0 to bypass
-  #CodeCoverageOutputFile: JaCoCo_$OsShortName.xml
-  #CodeCoverageOutputFileEncoding: ascii
-  # Use this if code coverage should be merged from several pipeline test jobs.
-  # Any existing keys above should be replaced. See also CodeCoverage below.
-  # CodeCoverageOutputFile is the file that is created for each pipeline test job.
-  #CodeCoverageOutputFile: JaCoCo_Merge.xml
-
-# Use this to merged code coverage from several pipeline test jobs.
-# CodeCoverageFilePattern      - the pattern used to search all pipeline test job artifacts
-#                                after the file specified in CodeCoverageOutputFile.
-# CodeCoverageMergedOutputFile - the file that is created by the merge build task and
-#                                is the file that should be uploaded to code coverage services.
-#CodeCoverage:
-  #CodeCoverageFilePattern: JaCoCo_Merge.xml # the pattern used to search all pipeline test job artifacts
-  #CodeCoverageMergedOutputFile: JaCoCo_coverage.xml # the file that is created for the merged code coverage
-
-# DscTest:
-#   ExcludeTag:
-#     - "Common Tests - New Error-Level Script Analyzer Rules"
-#   Tag:
-#   ExcludeSourceFile:
-#     - output
-#   ExcludeModuleFile:
-#     - Modules/DscResource.Common
-#     - Templates
+  Configuration:
+    Run:
+      Path:
+        - BicepNet.PS/tests
 
 # Import ModuleBuilder tasks from a specific PowerShell module using the build
 # task's alias. Wildcard * can be used to specify all tasks that has a similar
