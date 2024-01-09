@@ -1,6 +1,6 @@
 param (
     [string[]]
-    $ProjectPath = @('BicepNet.Core', 'BicepNet.PS'),
+    $Path = @('BicepNet.Core', 'BicepNet.PS'),
 
     [ValidateSet('Debug', 'Release')]
     [string]
@@ -22,23 +22,23 @@ task dotnetBuild {
         dotnet build-server shutdown
     }
 
-    foreach ($path in $ProjectPath) {
-        $outPathFolder = Split-Path -Path (Resolve-Path -Path $path) -Leaf
-        Write-Host $Path
+    foreach ($projPath in $Path) {
+        $outPathFolder = Split-Path -Path (Resolve-Path -Path $projPath) -Leaf
+        Write-Host $projPath
         Write-Host $outPathFolder
         $outPath = "bin/$outPathFolder"
-        if (-not (Test-Path -Path $path)) {
-            throw "Path '$path' does not exist."
+        if (-not (Test-Path -Path $projPath)) {
+            throw "Path '$projPath' does not exist."
         }
 
-        Push-Location -Path $path
+        Push-Location -Path $projPath
 
         # Remove output folder if exists
         if (Test-Path -Path $outPath) {
             Remove-Item -Path $outPath -Recurse -Force
         }
 
-        Write-Host "Building '$path' to '$outPath'" -ForegroundColor 'Magenta'
+        Write-Host "Building '$projPath' to '$outPath'" -ForegroundColor 'Magenta'
         dotnet publish -c $Configuration -o $outPath
 
         # Remove everything we don't need from the build
