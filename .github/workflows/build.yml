@@ -60,6 +60,9 @@ jobs:
     - build
     - test-linux
     # - test-win
+    permissions:
+      checks: write
+      pull-requests: write
     steps:
     - name: Checkout Code
       uses: actions/checkout@v3
