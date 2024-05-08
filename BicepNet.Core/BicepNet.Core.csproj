@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.ResourceManager" Version="1.11.1" />
+    <PackageReference Include="Azure.ResourceManager" Version="1.12.0" />
     <PackageReference Include="Azure.ResourceManager.Authorization" Version="1.1.3" />
     <PackageReference Include="Azure.ResourceManager.Subscription" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
