@@ -13,7 +13,7 @@ public partial class BicepWrapper
 
 	public async Task<IDictionary<string, string>> ExportChildResouresAsync(string scopeId, string? configurationPath = null, bool includeTargetScope = false)
 	{
-		Dictionary<string, string> result = new();
+		Dictionary<string, string> result = [];
 		var scopeResourceId = AzureHelpers.ValidateResourceId(scopeId);
 		var cancellationToken = new CancellationToken();
         var config = configurationManager.GetConfiguration(new Uri(configurationPath ?? "inmemory://main.bicep"));

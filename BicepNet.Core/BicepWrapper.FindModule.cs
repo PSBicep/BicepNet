@@ -20,7 +20,7 @@ public partial class BicepWrapper
     /// </summary>
     public IList<BicepRepository> FindModules(string inputString, bool isRegistryEndpoint)
     {
-        List<string> endpoints = new();
+        List<string> endpoints = [];
 
         // If a registry is specified, only add that
         if (isRegistryEndpoint)
@@ -32,9 +32,16 @@ public partial class BicepWrapper
             logger?.LogInformation("Searching file {inputString} for endpoints", inputString);
             var inputUri = PathHelper.FilePathToFileUrl(inputString);
 
-            var sourceFileGrouping = SourceFileGroupingBuilder.Build(fileResolver, moduleDispatcher, workspace, inputUri, featureProviderFactory, false);
+            var sourceFileGrouping = SourceFileGroupingBuilder.Build(
+               fileResolver,
+               moduleDispatcher,
+               configurationManager,
+               workspace,
+               inputUri,
+               featureProviderFactory,
+               false);
+            var moduleReferences = ArtifactHelper.GetValidArtifactReferences(sourceFileGrouping.GetArtifactsToRestore());
 
-            var moduleReferences = moduleDispatcher.GetValidModuleReferences(sourceFileGrouping.GetArtifactsToRestore());
             // FullyQualifiedReferences are already unwrapped from potential local aliases
             var fullReferences = moduleReferences.Select(m => m.FullyQualifiedReference);
             // Create objects with all module references grouped by endpoint
@@ -50,7 +57,7 @@ public partial class BicepWrapper
     /// </summary>
     public IList<BicepRepository> FindModules()
     {
-        List<string> endpoints = new();
+        List<string> endpoints = [];
 
         logger?.LogInformation("Searching cache {OciCachePath} for endpoints", OciCachePath);
         var directories = Directory.GetDirectories(OciCachePath);
@@ -66,7 +73,7 @@ public partial class BicepWrapper
         return FindModulesByEndpoints(endpoints);
     }
 
-    private IList<BicepRepository> FindModulesByEndpoints(IList<string> endpoints)
+    private List<BicepRepository> FindModulesByEndpoints(IList<string> endpoints)
     {
         if (endpoints.Count > 0)
         {
@@ -110,7 +117,7 @@ public partial class BicepWrapper
                         var artifact = repository.GetArtifact(moduleManifest.Digest);
                         var tags = artifact.GetTagPropertiesCollection();
 
-                        List<BicepRepositoryModuleTag> tagList = new ();
+                        List<BicepRepositoryModuleTag> tagList = [];
                         // All artifacts don't have tags, but the tags variable will not be null because of the pageable
                         // This means we can't compare null
                         try
@@ -141,7 +148,7 @@ public partial class BicepWrapper
                         bicepRepository.ModuleVersions.Add(bicepModule);
                     }
 
-                    bicepRepository.ModuleVersions = bicepRepository.ModuleVersions.OrderByDescending(t => t.UpdatedOn).ToList();
+                    bicepRepository.ModuleVersions = [.. bicepRepository.ModuleVersions.OrderByDescending(t => t.UpdatedOn)];
 
                     repos.Add(bicepRepository);
                 }

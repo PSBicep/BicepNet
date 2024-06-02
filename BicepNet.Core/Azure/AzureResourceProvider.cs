@@ -17,20 +17,15 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace BicepNet.Core.Azure;
-public class AzureResourceProvider : IAzResourceProvider
+public class AzureResourceProvider(ITokenCredentialFactory credentialFactory) : IAzResourceProvider
 {
-    private readonly ITokenCredentialFactory credentialFactory;
+    private readonly ITokenCredentialFactory credentialFactory = credentialFactory;
     private AccessToken accessToken;
-
-    public AzureResourceProvider(ITokenCredentialFactory credentialFactory)
-    {
-        this.credentialFactory = credentialFactory;
-    }
 
     private async Task UpdateAccessTokenAsync(RootConfiguration configuration, CancellationToken cancellationToken)
     {
         var credential = credentialFactory.CreateChain(configuration.Cloud.CredentialPrecedence, null, configuration.Cloud.ActiveDirectoryAuthorityUri);
-        var tokenRequestContext = new TokenRequestContext(new string[] { configuration.Cloud.AuthenticationScope }, configuration.Cloud.ResourceManagerEndpointUri.ToString());
+        var tokenRequestContext = new TokenRequestContext([configuration.Cloud.AuthenticationScope], configuration.Cloud.ResourceManagerEndpointUri.ToString());
         accessToken = await credential.GetTokenAsync(tokenRequestContext, cancellationToken);
     }
 
@@ -62,7 +57,7 @@ public class AzureResourceProvider : IAzResourceProvider
         var armClient = CreateArmClient(configuration, scopeResourceId.subscriptionId, resourceTypeApiVersionMapping);
         var scopeResourceIdentifier = new ResourceIdentifier(scopeResourceId.FullyQualifiedId);
 
-        List<Task<IDictionary<string, JsonElement>>> tasks = new();
+        List<Task<IDictionary<string, JsonElement>>> tasks = [];
 
         switch ((string)scopeResourceIdentifier.ResourceType)
         {
@@ -76,29 +71,28 @@ public class AzureResourceProvider : IAzResourceProvider
                 }
 
                 // Setup tasks of all dictionaries to loop through
-                tasks = new() {
+                tasks = [
                     PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, RoleDefinitionType.CustomRole, cancellationToken)
-                };
+                ];
                 break;
             case "Microsoft.Resources/subscriptions":
-                tasks = new() {
+                tasks = [
                     PolicyHelper.ListPolicyDefinitionsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     PolicyHelper.ListPolicyInitiativesAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     RoleHelper.ListRoleDefinitionsAsync(scopeResourceIdentifier, armClient, RoleDefinitionType.CustomRole, cancellationToken)
-                };
+                ];
                 break;
             case "Microsoft.Resources/resourceGroups":
-                tasks = new()
-                {
+                tasks = [
                     PolicyHelper.ListPolicyAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken),
                     RoleHelper.ListRoleAssignmentsAsync(scopeResourceIdentifier, armClient, cancellationToken)
-                };
+                ];
                 break;
         }
         // Return all resources found
@@ -168,7 +162,7 @@ public class AzureResourceProvider : IAzResourceProvider
 
         var printOptions = new PrettyPrintOptions(NewlineOption.LF, IndentKindOption.Space, 2, false);
         var program = new ProgramSyntax(
-            new[] { resourceDeclaration },
+            [resourceDeclaration],
             SyntaxFactory.CreateToken(TokenType.EndOfFile));
         var template = PrettyPrinter.PrintProgram(program, printOptions, EmptyDiagnosticLookup.Instance, EmptyDiagnosticLookup.Instance);
 

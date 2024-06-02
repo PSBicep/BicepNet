@@ -1,15 +1,12 @@
-using Microsoft.WindowsAzure.ResourceStack.Common.Extensions;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
 namespace BicepNet.PS.LoadContext;
 
-public class DependencyAssemblyLoadContext : AssemblyLoadContext
+public class DependencyAssemblyLoadContext(string dependencyDirPath) : AssemblyLoadContext(nameof(DependencyAssemblyLoadContext))
 {
     private static readonly string s_psHome = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
     
@@ -20,13 +17,7 @@ public class DependencyAssemblyLoadContext : AssemblyLoadContext
         return s_dependencyLoadContexts.GetOrAdd(directoryPath, (path) => new DependencyAssemblyLoadContext(path));
     }
 
-    private readonly string _dependencyDirPath;
-
-    public DependencyAssemblyLoadContext(string dependencyDirPath)
-        : base(nameof(DependencyAssemblyLoadContext))
-    {
-        _dependencyDirPath = dependencyDirPath;
-    }
+    private readonly string _dependencyDirPath = dependencyDirPath;
 
     protected override Assembly Load(AssemblyName assemblyName)
     {

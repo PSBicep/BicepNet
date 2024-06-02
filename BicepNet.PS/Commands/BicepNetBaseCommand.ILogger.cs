@@ -7,13 +7,13 @@ namespace BicepNet.PS.Commands;
 
 public partial class BicepNetBaseCommand : ILogger
 {
-    private readonly List<LogLevel> logLevels = new() {
+    private readonly List<LogLevel> logLevels = [
         LogLevel.Trace,
         LogLevel.Debug,
         LogLevel.Information,
         LogLevel.Warning,
         LogLevel.Error
-    };
+    ];
 
     public IDisposable BeginScope<TState>(TState state) => default!;
 

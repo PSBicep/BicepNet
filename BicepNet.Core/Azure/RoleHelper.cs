@@ -4,6 +4,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Authorization;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,10 +64,10 @@ internal static class RoleHelper
         {
             taskList.Add(item.Id.ToString(), item.GetAsync(cancellationToken: cancellationToken));
         }
-
-        foreach (var id in taskList.Keys)
+        var responseList = await GetResponseDictionaryAsync(taskList);
+        foreach (var id in responseList.Keys)
         {
-            var policyItemResponse = await taskList[id];
+            var policyItemResponse = responseList[id];
             var resourceId = AzureHelpers.ValidateResourceId(id);
             if (policyItemResponse is null ||
                 policyItemResponse.GetRawResponse().ContentStream is not { } contentStream)
@@ -93,10 +94,10 @@ internal static class RoleHelper
         {
             taskList.Add(item.Id.ToString(), item.GetAsync(cancellationToken: cancellationToken));
         }
-
-        foreach (var id in taskList.Keys)
+        var responseList = await GetResponseDictionaryAsync(taskList);
+        foreach (var id in responseList.Keys)
         {
-            var policyItemResponse = await taskList[id];
+            var policyItemResponse = responseList[id];
             var resourceId = AzureHelpers.ValidateResourceId(id);
             if (policyItemResponse is null ||
                 policyItemResponse.GetRawResponse().ContentStream is not { } contentStream)
@@ -141,5 +142,12 @@ internal static class RoleHelper
         }
         paContentStream.Position = 0;
         return await JsonSerializer.DeserializeAsync<JsonElement>(paContentStream, cancellationToken: cancellationToken);
+    }
+
+    private static async Task<IDictionary<string, Response<T>>> GetResponseDictionaryAsync<T>(Dictionary<string, Task<Response<T>>> taskList)
+    {
+        var resultListPairs = await Task.WhenAll(taskList.Select(async result =>
+            new { result.Key, Value = await result.Value }));
+        return resultListPairs.ToDictionary(result => result.Key, result => result.Value);
     }
 }

@@ -1,17 +1,10 @@
-﻿using Bicep.Core.Diagnostics;
-using Bicep.Core.Navigation;
-using Bicep.Core.PrettyPrint;
+﻿using Bicep.Core.PrettyPrint;
 using Bicep.Core.PrettyPrint.Options;
-using Bicep.Core.Registry;
 using Bicep.Core.Rewriters;
 using Bicep.Core.Semantics;
-using Bicep.Core.Utils;
 using Bicep.Core.Workspaces;
 using BicepNet.Core.Azure;
-using Microsoft.WindowsAzure.ResourceStack.Common.Extensions;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text.Json;
 
@@ -33,26 +26,33 @@ public partial class BicepWrapper
     {
         BicepFile virtualBicepFile = SourceFileFactory.CreateBicepFile(new Uri($"inmemory:///generated.bicep"), template);
 
-        // SourceFileGroupingBuilder.Build doesn't work with fake files (because of some internal recursive shenanigans?)
-        // So we build the grouping manually à la hack
-        var sourceFileGrouping = new SourceFileGrouping(
+        var sourceFileGrouping = SourceFileGroupingBuilder.Build(
             fileResolver,
+            moduleDispatcher,
+            configurationManager,
+            workspace,
             virtualBicepFile.FileUri,
-            new Dictionary<Uri, ResultWithDiagnostic<ISourceFile>>
-            {
-                new KeyValuePair<Uri, ResultWithDiagnostic<ISourceFile>>(virtualBicepFile.FileUri, new ResultWithDiagnostic<ISourceFile>(virtualBicepFile))
-            }.ToImmutableDictionary(),
-            new Dictionary<ISourceFile, ImmutableDictionary<IArtifactReferenceSyntax, Result<Uri, UriResolutionError>>>().ToImmutableDictionary(),
-            new Dictionary<ISourceFile, ImmutableHashSet<ISourceFile>>().ToImmutableDictionary()
-        );
-        var compilation = new Compilation(featureProviderFactory, environment, namespaceProvider, sourceFileGrouping, configurationManager, bicepAnalyzer, artifactReferenceFactory);
+            featureProviderFactory,
+            false);
+ 
+        var compilation = new Compilation(
+            featureProviderFactory,
+            environment,
+            namespaceProvider,
+            sourceFileGrouping,
+            configurationManager,
+            bicepAnalyzer,
+            moduleDispatcher,
+            new AuxiliaryFileCache(fileResolver),
+            ImmutableDictionary<ISourceFile, ISemanticModel>.Empty);
 
         var bicepFile = RewriterHelper.RewriteMultiple(
-                compilation,
-                virtualBicepFile,
-                rewritePasses: 1,
-                model => new TypeCasingFixerRewriter(model),
-                model => new ReadOnlyPropertyRemovalRewriter(model));
+            compiler,
+            compilation,
+            virtualBicepFile,
+            rewritePasses: 1,
+            model => new TypeCasingFixerRewriter(model),
+            model => new ReadOnlyPropertyRemovalRewriter(model));
 
         var printOptions = new PrettyPrintOptions(NewlineOption.LF, IndentKindOption.Space, 2, false);
         template = PrettyPrinter.PrintValidProgram(bicepFile.ProgramSyntax, printOptions);

@@ -98,7 +98,7 @@ public class BicepNetTokenCredentialFactory : ITokenCredentialFactory
             // Since we cannot change the method signatures of the ITokenCredentialFactory, set properties and check them within the class
             InteractiveAuthentication = true;
             Credential = new InteractiveBrowserCredential(options: new() { AuthorityHost = activeDirectoryAuthorityUri });
-            TokenRequestContext = new TokenRequestContext(new[] { Scope }, tenantId: tenantId);
+            TokenRequestContext = new TokenRequestContext([Scope], tenantId: tenantId);
 
             // Get token immediately to trigger browser prompt, instead of waiting until the credential is used
             // The token is then stored in the Credential object, here we don't care about the return value

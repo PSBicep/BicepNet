@@ -5,16 +5,10 @@ using System.Threading.Tasks;
 
 namespace BicepNet.Core.Authentication;
 
-public class ExternalTokenCredential : TokenCredential
+public class ExternalTokenCredential(string token, DateTimeOffset expiresOn) : TokenCredential
 {
-    private string token;
-    private DateTimeOffset expiresOn;
-
-    public ExternalTokenCredential(string token, DateTimeOffset expiresOn)
-    {
-        this.token = token;
-        this.expiresOn = expiresOn;
-    }
+    private readonly string token = token;
+    private readonly DateTimeOffset expiresOn = expiresOn;
 
     public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
     {

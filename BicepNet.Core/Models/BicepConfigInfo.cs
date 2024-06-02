@@ -1,15 +1,9 @@
 ﻿namespace BicepNet.Core.Models;
 
-public class BicepConfigInfo
+public class BicepConfigInfo(string path, string config)
 {
-    public string Path { get; }
-    public string Config { get; }
-
-    public BicepConfigInfo(string path, string config)
-    {
-        Path = path;
-        Config = config;
-    }
+    public string Path { get; } = path;
+    public string Config { get; } = config;
 
     public override string ToString() => Path;
 }
