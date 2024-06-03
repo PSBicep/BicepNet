@@ -6,7 +6,7 @@ on:
 runs:
   using: 'composite'
   steps:
-  - uses: actions/checkout@v3
+  - uses: actions/checkout@v4
     with:
       ref: ${{ github.head_ref }}
       fetch-depth: 0
@@ -17,7 +17,7 @@ runs:
       ReleaseVersion: 'stable'
 
   - name: Download Build Artifact
-    uses: actions/download-artifact@v3
+    uses: actions/download-artifact@v4
     with:
       name: ${{ env.buildArtifactName }}
       path: ${{ env.buildFolderName }}
