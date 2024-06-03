@@ -39,7 +39,7 @@ task dotnetBuild {
         }
 
         Write-Host "Restoring '$projPath'" -ForegroundColor 'Magenta'
-        dotnet restore
+        dotnet restore --force-evaluate
         Write-Host "Building '$projPath' to '$outPath'" -ForegroundColor 'Magenta'
         dotnet publish -c $Configuration -o $outPath
 
