@@ -1,5 +1,4 @@
 ﻿using Bicep.Cli.Logging;
-using Bicep.Cli.Services;
 using Bicep.Core;
 using Bicep.Core.Analyzers.Interfaces;
 using Bicep.Core.Configuration;
@@ -34,7 +33,7 @@ public partial class BicepWrapper
     public string TemplateSpecsCachePath { get; }
 
     private readonly ILogger logger;
-    private DiagnosticLogger diagnosticLogger;
+    private readonly DiagnosticLogger diagnosticLogger;
     private readonly IServiceProvider services;
 
     // Services shared between commands
@@ -53,7 +52,6 @@ public partial class BicepWrapper
     private readonly IBicepAnalyzer bicepAnalyzer;
     private readonly IFeatureProviderFactory featureProviderFactory;
     private readonly BicepCompiler compiler;
-    private readonly CompilationService compilationService;
     private readonly BicepDecompiler decompiler;
     private readonly Workspace workspace;
     private readonly RootConfiguration configuration;
@@ -82,7 +80,6 @@ public partial class BicepWrapper
         bicepAnalyzer = services.GetRequiredService<IBicepAnalyzer>();
         featureProviderFactory = services.GetRequiredService<IFeatureProviderFactory>();
         compiler = services.GetRequiredService<BicepCompiler>();
-        compilationService = services.GetRequiredService<CompilationService>();
         environment = services.GetRequiredService<IEnvironment>();
 
         decompiler = services.GetRequiredService<BicepDecompiler>();
@@ -92,8 +89,8 @@ public partial class BicepWrapper
         azResourceProvider = services.GetRequiredService<AzureResourceProvider>();
 
         BicepVersion = FileVersionInfo.GetVersionInfo(typeof(Workspace).Assembly.Location).FileVersion ?? "dev";
-        OciCachePath = Path.Combine(services.GetRequiredService<IFeatureProviderFactory>().GetFeatureProvider(new Uri("inmemory:///main.bicp")).CacheRootDirectory, ModuleReferenceSchemes.Oci);
-        TemplateSpecsCachePath = Path.Combine(services.GetRequiredService<IFeatureProviderFactory>().GetFeatureProvider(new Uri("inmemory:///main.bicp")).CacheRootDirectory, ModuleReferenceSchemes.TemplateSpecs);
+        OciCachePath = Path.Combine(services.GetRequiredService<IFeatureProviderFactory>().GetFeatureProvider(new Uri("inmemory:///main.bicp")).CacheRootDirectory, ArtifactReferenceSchemes.Oci);
+        TemplateSpecsCachePath = Path.Combine(services.GetRequiredService<IFeatureProviderFactory>().GetFeatureProvider(new Uri("inmemory:///main.bicp")).CacheRootDirectory, ArtifactReferenceSchemes.TemplateSpecs);
     }
 
     public void ClearAuthentication() => tokenCredentialFactory.Clear();

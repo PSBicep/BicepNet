@@ -21,9 +21,6 @@ public static partial class AzureHelpers
     [GeneratedRegex(@"^/subscriptions/(?<subId>[^/]+)$", RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant)]
     private static partial Regex SubscriptionId();
 
-    [GeneratedRegex("[^a-zA-Z]")]
-    private static partial Regex NotAnsiLetter();
-
     public static IAzResourceProvider.AzResourceIdentifier ValidateResourceId(string id)
     {
         if (TryParseResourceId(id) is not { } resourceId)
@@ -123,13 +120,13 @@ public static partial class AzureHelpers
             SyntaxFactory.CreateStringLiteral($"Generated from {resourceId.FullyQualifiedId}"));
 
         return new ResourceDeclarationSyntax(
-            new SyntaxBase[] { description, SyntaxFactory.NewlineToken, },
+            [description, SyntaxFactory.NewlineToken,],
             SyntaxFactory.CreateIdentifierToken("resource"),
             SyntaxFactory.CreateIdentifier(NotLetters().Replace(resourceId.UnqualifiedName, "")),
             SyntaxFactory.CreateStringLiteral(typeReference.FormatName()),
             null,
             SyntaxFactory.CreateToken(TokenType.Assignment),
-            ImmutableArray<Token>.Empty,
+            [],
             SyntaxFactory.CreateObject(properties));
     }
 

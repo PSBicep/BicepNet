@@ -9,7 +9,7 @@ namespace BicepNet.PS.Commands;
 public class GetBicepNetConfigCommand : BicepNetBaseCommand
 {
     [Parameter(ParameterSetName = "Scope")]
-    [ValidateSet(new[] { "Default", "Merged", "Local"  })]
+    [ValidateSet(["Default", "Merged", "Local"])]
     public string Scope { get; set; }
 
     [Parameter(ValueFromPipeline = true)]

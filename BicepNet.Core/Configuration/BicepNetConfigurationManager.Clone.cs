@@ -16,16 +16,11 @@ namespace BicepNet.Core.Configuration;
 
 // This is a full copy of Bicep.Core.Configuration.ConfigurationManager where only GetDefaultConfiguration() is removed
 // We have implemented our own GetDefaultConfiguration() instead
-public partial class BicepNetConfigurationManager : IConfigurationManager
+public partial class BicepNetConfigurationManager(IFileSystem fileSystem) : IConfigurationManager
 {
     private readonly ConcurrentDictionary<Uri, (RootConfiguration? config, DiagnosticBuilder.DiagnosticBuilderDelegate? loadError)> configFileUriToLoadedConfigCache = new();
     private readonly ConcurrentDictionary<Uri, ConfigLookupResult> templateUriToConfigUriCache = new();
-    private readonly IFileSystem fileSystem;
-
-    public BicepNetConfigurationManager(IFileSystem fileSystem)
-    {
-        this.fileSystem = fileSystem;
-    }
+    private readonly IFileSystem fileSystem = fileSystem;
 
     public RootConfiguration GetConfiguration(Uri sourceFileUri)
     {
@@ -68,7 +63,7 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
 
     private (RootConfiguration, List<DiagnosticBuilder.DiagnosticBuilderDelegate>) GetConfigurationFromCache(Uri sourceFileUri)
     {
-        List<DiagnosticBuilder.DiagnosticBuilderDelegate> diagnostics = new();
+        List<DiagnosticBuilder.DiagnosticBuilderDelegate> diagnostics = [];
 
         var (configFileUri, lookupDiagnostic) = templateUriToConfigUriCache.GetOrAdd(sourceFileUri, LookupConfiguration);
         if (lookupDiagnostic is not null)
@@ -101,18 +96,19 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
                 configuration.Cloud,
                 configuration.ModuleAliases,
                 configuration.ProviderAliases,
+                configuration.ProvidersConfig,
+                configuration.ImplicitProvidersConfig,
                 configuration.Analyzers,
                 configuration.CacheRootDirectory,
                 configuration.ExperimentalFeaturesEnabled,
                 configuration.Formatting,
-                configuration.ConfigurationPath,
+                configuration.ConfigFileUri,
                 diagnostics);
         }
 
         return configuration;
     }
 
-    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Code Smell", "S125:Sections of code should not be commented out", Justification = "Keeping comments of overridden methods in separate partial class.")]
     //private RootConfiguration GetDefaultConfiguration() => IConfigurationManager.GetBuiltInConfiguration();
 
     private (RootConfiguration?, DiagnosticBuilder.DiagnosticBuilderDelegate?) LoadConfiguration(Uri configurationUri)
@@ -122,7 +118,7 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
             using var stream = fileSystem.FileStream.New(configurationUri.LocalPath, FileMode.Open, FileAccess.Read);
             var element = BuiltInConfigurationElement.Merge(JsonElementFactory.CreateElementFromStream(stream));
 
-            return (RootConfiguration.Bind(element, configurationUri.LocalPath), null);
+            return (RootConfiguration.Bind(element, configurationUri), null);
         }
         catch (ConfigurationException exception)
         {
@@ -173,5 +169,5 @@ public partial class BicepNetConfigurationManager : IConfigurationManager
         return new(null, lookupDiagnostic);
     }
 
-    private record ConfigLookupResult(Uri? configFileUri = null, DiagnosticBuilder.DiagnosticBuilderDelegate? lookupDiagnostic = null);
+    private record ConfigLookupResult(Uri? ConfigFileUri = null, DiagnosticBuilder.DiagnosticBuilderDelegate? LookupDiagnostic = null);
 }

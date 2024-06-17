@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +14,7 @@ public partial class BicepWrapper
 
     public async Task<IDictionary<string, string>> ExportResourcesAsync(string[] ids, string? configurationPath = null, bool includeTargetScope = false)
     {
-        IDictionary<string, string> result = new Dictionary<string, string>();
+        Dictionary<string, string> result = [];
         var taskList = new List<Task<(string resourceName, string template)>>();
         foreach (string id in ids)
         {

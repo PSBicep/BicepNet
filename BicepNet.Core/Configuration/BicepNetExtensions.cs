@@ -3,7 +3,6 @@ using Azure.Bicep.Types.Az;
 using Bicep.Cli;
 using Bicep.Cli.Helpers;
 using Bicep.Cli.Logging;
-using Bicep.Cli.Services;
 using Bicep.Core.Registry;
 using Bicep.Core.Registry.Auth;
 using Bicep.Core.TypeSystem.Providers;
@@ -28,8 +27,6 @@ public static class BicepNetExtensions
             .AddSingleton<BicepNetConfigurationManager>()
             .AddBicepCore()
             .AddBicepDecompiler()
-            .AddBicepparamDecompiler()
-
             .AddSingleton<ModuleDispatcher>()
             .AddSingleton<IArtifactReferenceFactory>(s => s.GetRequiredService<ModuleDispatcher>())
             .AddSingleton<AzureResourceProvider>()
@@ -43,7 +40,6 @@ public static class BicepNetExtensions
             .AddSingleton(bicepLogger)
             .AddSingleton(new IOContext(Console.Out, Console.Error))
             .AddSingleton<DiagnosticLogger>()
-            .AddSingleton<CompilationService>()
 
             .AddSingleton<BicepNetTokenCredentialFactory>()
             .Replace(ServiceDescriptor.Singleton<ITokenCredentialFactory>(s => s.GetRequiredService<BicepNetTokenCredentialFactory>()));

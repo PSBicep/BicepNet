@@ -2,23 +2,14 @@
 
 namespace BicepNet.Core.Models;
 
-public class BicepRepositoryModuleTag
+public class BicepRepositoryModuleTag(string name, string digest, string target, DateTimeOffset createdOn, DateTimeOffset updatedOn)
 {
-    public string Name { get; }
-    public string Digest { get; }
-    public string Target { get; }
+    public string Name { get; } = name;
+    public string Digest { get; } = digest;
+    public string Target { get; } = target;
 
-    public DateTimeOffset CreatedOn { get; }
-    public DateTimeOffset UpdatedOn { get; }
-
-    public BicepRepositoryModuleTag(string name, string digest, string target, DateTimeOffset createdOn, DateTimeOffset updatedOn)
-    {
-        Name = name;
-        Digest = digest;
-        Target = target;
-        CreatedOn = createdOn;
-        UpdatedOn = updatedOn;
-    }
+    public DateTimeOffset CreatedOn { get; } = createdOn;
+    public DateTimeOffset UpdatedOn { get; } = updatedOn;
 
     public override string ToString() => Name;
 }

@@ -2,17 +2,11 @@
 
 namespace BicepNet.Core.Models;
 
-public class BicepRepository
+public class BicepRepository(string name, string endpoint)
 {
-    public string Name { get; }
-    public string Endpoint { get; }
-    public IList<BicepRepositoryModule> ModuleVersions { get; set; } = new List<BicepRepositoryModule>();
-
-    public BicepRepository(string name, string endpoint)
-    {
-        Name = name;
-        Endpoint = endpoint;
-    }
+    public string Name { get; } = name;
+    public string Endpoint { get; } = endpoint;
+    public IList<BicepRepositoryModule> ModuleVersions { get; set; } = [];
 
     public override string ToString() => Name;
 }

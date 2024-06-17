@@ -20,7 +20,6 @@ public partial class BicepWrapper
     {
         var inputPath = PathHelper.ResolvePath(inputFilePath);
         var inputUri = PathHelper.FilePathToFileUrl(inputPath);
-        var features = featureProviderFactory.GetFeatureProvider(PathHelper.FilePathToFileUrl(inputPath));
         ArtifactReference? moduleReference = ValidateReference(targetModuleReference, inputUri);
 
         if (PathHelper.HasArmTemplateLikeExtension(inputUri))
@@ -34,7 +33,7 @@ public partial class BicepWrapper
         var bicepCompiler = new BicepCompiler(featureProviderFactory, environment, namespaceProvider, configurationManager, bicepAnalyzer, fileResolver, moduleDispatcher);
         var compilation = await bicepCompiler.CreateCompilation(inputUri, workspace);
         
-        using var sourcesStream = features.PublishSourceEnabled ? SourceArchive.PackSourcesIntoStream(compilation.SourceFileGrouping) : null;
+        using var sourcesStream = SourceArchive.PackSourcesIntoStream(moduleDispatcher, compilation.SourceFileGrouping, null);
 
         if (!LogDiagnostics(compilation).HasErrors)
         {
@@ -73,9 +72,10 @@ public partial class BicepWrapper
             // If we don't want to overwrite, ensure module doesn't exist
             if (!overwriteIfExists && await this.moduleDispatcher.CheckModuleExists(target))
             {
-                throw new BicepException($"The module \"{target.FullyQualifiedReference}\" already exists in registry. Use --force to overwrite the existing module.");
+                throw new BicepException($"The module \"{target.FullyQualifiedReference}\" already exists in registry. Use -Force to overwrite the existing module.");
             }
-            await this.moduleDispatcher.PublishModule(target, compiledArmTemplate, bicepSources, documentationUri);
+            var binaryBicepSources = bicepSources == null ? null : BinaryData.FromStream(bicepSources);
+            await this.moduleDispatcher.PublishModule(target, BinaryData.FromStream(compiledArmTemplate), binaryBicepSources, documentationUri);
         }
         catch (ExternalArtifactException exception)
         {

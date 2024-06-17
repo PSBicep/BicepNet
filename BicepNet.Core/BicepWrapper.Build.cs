@@ -1,10 +1,7 @@
-using Bicep.Cli;
-using Bicep.Core;
 using Bicep.Core.Emit;
 using Bicep.Core.FileSystem;
 using Bicep.Core.Semantics;
 using Bicep.Core.Workspaces;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -19,13 +16,14 @@ public partial class BicepWrapper
     public async Task<IList<string>> BuildAsync(string bicepPath, string usingPath = "", bool noRestore = false)
     {
         var inputPath = PathHelper.ResolvePath(bicepPath);
+        var inputUri = PathHelper.FilePathToFileUrl(inputPath);
 
-        if (!IsBicepFile(inputPath) && !IsBicepparamsFile(inputPath))
+        if (!IsBicepFile(inputUri) && !IsBicepparamsFile(inputUri))
         {
             throw new InvalidOperationException($"Input file '{inputPath}' must have a .bicep or .bicepparam extension.");
         }
 
-        var compilation = await compilationService.CompileAsync(inputPath, noRestore);
+        var compilation = await compiler.CreateCompilation(inputUri, skipRestore: noRestore);
 
         var summary = LogDiagnostics(compilation);
 
@@ -35,7 +33,7 @@ public partial class BicepWrapper
         }
 
         var fileKind = compilation.SourceFileGrouping.EntryPoint.FileKind;
-
+            
         var stream = new MemoryStream();
         EmitResult emitresult = fileKind switch
         {
@@ -60,8 +58,9 @@ public partial class BicepWrapper
         return template;
     }
 
-    private static bool IsBicepFile(string inputPath) => PathHelper.HasBicepExtension(PathHelper.FilePathToFileUrl(inputPath));
-    private static bool IsBicepparamsFile(string inputPath) => PathHelper.HasBicepparamsExension(PathHelper.FilePathToFileUrl(inputPath));
+    private static bool IsBicepFile(Uri inputUri) => PathHelper.HasBicepExtension(inputUri);
+    private static bool IsBicepparamsFile(Uri inputUri) => PathHelper.HasBicepparamsExtension(inputUri);
+
     private static EmitResult EmitParamsFile(Compilation compilation, string usingPath, Stream stream)
     {
         var bicepPath = PathHelper.ResolvePath(usingPath);

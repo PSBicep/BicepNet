@@ -38,6 +38,8 @@ task dotnetBuild {
             Remove-Item -Path $outPath -Recurse -Force
         }
 
+        Write-Host "Restoring '$projPath'" -ForegroundColor 'Magenta'
+        dotnet restore --force-evaluate
         Write-Host "Building '$projPath' to '$outPath'" -ForegroundColor 'Magenta'
         dotnet publish -c $Configuration -o $outPath
 

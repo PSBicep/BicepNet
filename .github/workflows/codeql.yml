@@ -48,22 +48,22 @@ jobs:
         ReleaseVersion: 'stable'
     
     - name: Setup.NET Core
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '7.0'
+        dotnet-version: '8.0'
   
     - name: Install GitVersion
-      uses: gittools/actions/gitversion/setup@v0.9.15
+      uses: gittools/actions/gitversion/setup@v1.1.1
       with:
         versionSpec: '5.x'
   
     - name: Determine Version
       id:   gitversion
-      uses: gittools/actions/gitversion/execute@v0.9.15
+      uses: gittools/actions/gitversion/execute@v1.1.1
   
     - name: Setup assets cache
       id: assetscache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: output/RequiredModules
         key: ${{ hashFiles('RequiredModules.psd1') }}
