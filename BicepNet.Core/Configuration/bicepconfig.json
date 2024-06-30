@@ -19,8 +19,7 @@
       }
     },
     "credentialPrecedence": [
-      "AzurePowerShell",
-      "AzureCLI"
+      "AzurePowerShell"
     ]
   },
   "moduleAliases": {
