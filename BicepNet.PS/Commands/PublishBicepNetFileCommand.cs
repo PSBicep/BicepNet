@@ -18,9 +18,12 @@ public class PublishBicepNetFileCommand : BicepNetBaseCommand
     public string DocumentationUri { get; set; }
 
     [Parameter(Mandatory = false)]
+    public SwitchParameter PublishSource { get; set; }
+
+    [Parameter(Mandatory = false)]
     public SwitchParameter Force { get; set; }
     protected override void ProcessRecord()
     {
-        bicepWrapper.Publish(Path, Target, DocumentationUri, Force.IsPresent);
+        bicepWrapper.Publish(Path, Target, DocumentationUri, PublishSource.IsPresent, Force.IsPresent);
     }
 }

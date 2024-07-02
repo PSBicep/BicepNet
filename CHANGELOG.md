@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Support for Bicep v0.27.1.
+- Support for version 0.27 of Bicep
+- Support for version 0.28 of Bicep
+- Support for publishing bicep source to registry
 
 ### Security
 
