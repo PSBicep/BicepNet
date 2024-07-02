@@ -79,7 +79,8 @@ public partial class BicepWrapper
             {
                 throw new BicepException($"The module \"{target.FullyQualifiedReference}\" already exists in registry. Use parameter Force to overwrite the existing module.");
             }
-            await this.moduleDispatcher.PublishModule(target, compiledArmTemplate, bicepSources, documentationUri);
+            var binaryBicepSources = bicepSources == null ? null : BinaryData.FromStream(bicepSources);
+            await this.moduleDispatcher.PublishModule(target, BinaryData.FromStream(compiledArmTemplate), binaryBicepSources, documentationUri);
         }
         catch (ExternalArtifactException exception)
         {
