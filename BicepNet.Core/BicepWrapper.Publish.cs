@@ -77,10 +77,9 @@ public partial class BicepWrapper
             // If we don't want to overwrite, ensure module doesn't exist
             if (!overwriteIfExists && await this.moduleDispatcher.CheckModuleExists(target))
             {
-                throw new BicepException($"The module \"{target.FullyQualifiedReference}\" already exists in registry. Use parameter Force to overwrite the existing module.");
+                throw new BicepException($"The module \"{target.FullyQualifiedReference}\" already exists in registry. Use --force to overwrite the existing module.");
             }
-            var binaryBicepSources = bicepSources == null ? null : BinaryData.FromStream(bicepSources);
-            await this.moduleDispatcher.PublishModule(target, BinaryData.FromStream(compiledArmTemplate), binaryBicepSources, documentationUri);
+            await this.moduleDispatcher.PublishModule(target, compiledArmTemplate, bicepSources, documentationUri);
         }
         catch (ExternalArtifactException exception)
         {
