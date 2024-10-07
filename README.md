@@ -1,6 +1,6 @@
 # BicepNet
 
-> **BicepNet is no longer a standalone project from PSBicep! The code lives on as part of the [Bicep PowerShell module](https://github.com/PSBicep/PSBicep).**
+> **BicepNet is no longer a standalone project from PSBicep! The code lives on as its own part of the [Bicep PowerShell module](https://github.com/PSBicep/PSBicep), a hybrid module written in both C# (the part that was previously this project) and PowerShell.**
 
 ---
 
@@ -36,17 +36,6 @@ Using BicepNet is generally much faster than calling the CLI since the overhead 
 | `1.0.1` | `0.4.63` |
 | `1.0.0` | `0.4.63` |
 
-## Issues
-
-Issues are disabled in the BicepNet repository. Open an issue in [PSBicep/PSBicep](https://github.com/PSBicep/PSBicep/issues) for bug reports or feature requests.
-
 ## Contributing
-If you like the BicepNet PowerShell module and want to contribute you are very much welcome to do so. Please read our [Contribution Guide](CONTRIBUTING.md) before you start! ❤
 
-## Maintainers
-
-This project is currently maintained by the following coders:
-
-- [SimonWahlin](https://github.com/SimonWahlin)
-- [PalmEmanuel](https://github.com/PalmEmanuel)
-- [StefanIvemo](https://github.com/StefanIvemo)
+If you like the Bicep PowerShell module and want to contribute you are very much welcome to do so. Please see the [Bicep PowerShell module](https://github.com/PSBicep/PSBicep) for how to get started.
